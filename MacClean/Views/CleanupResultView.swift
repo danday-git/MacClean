@@ -3,8 +3,10 @@ import SwiftUI
 struct CleanupResultView: View {
     @ObservedObject var viewModel: DashboardViewModel
     @Binding var isPresented: Bool
+    @ObservedObject private var languageManager = LanguageManager.shared
     
     var body: some View {
+        let isID = languageManager.language == .indonesian
         let results = viewModel.cleanupResults
         let successCount = results.filter { $0.status == .moved }.count
         let failureCount = results.filter { $0.status != .moved }.count
@@ -16,20 +18,24 @@ struct CleanupResultView: View {
             VStack(spacing: 6) {
                 Image(systemName: failureCount == 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                     .font(.system(size: 44))
-                    .foregroundColor(failureCount == 0 ? .green : .orange)
+                    .foregroundColor(failureCount == 0 ? Color.mcEmerald : Color.mcCoral)
                     .padding(.top, 4)
                 
-                Text(failureCount == 0 ? "Cleanup Successful" : "Cleanup Partially Completed")
+                Text(failureCount == 0 ? (isID ? "Pembersihan Berhasil" : "Cleanup Successful") : (isID ? "Pembersihan Sebagian Selesai" : "Cleanup Partially Completed"))
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundColor(Color.mcOnSurface)
                 
-                Text("\(ByteFormatter.string(from: bytesMoved)) moved to macOS Trash")
+                Text(isID ? "\(ByteFormatter.string(from: bytesMoved)) dipindahkan ke Tempat Sampah" : "\(ByteFormatter.string(from: bytesMoved)) moved to macOS Trash")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(Color.mcPrimary)
                 
-                Text("\(successCount) item\(successCount == 1 ? "" : "s") cleaned successfully\(failureCount > 0 ? " • \(failureCount) item(s) skipped" : "").")
+                let cleanedText = isID ?
+                    "\(successCount) item berhasil dibersihkan\(failureCount > 0 ? " • \(failureCount) item dilewati" : "")." :
+                    "\(successCount) item\(successCount == 1 ? "" : "s") cleaned successfully\(failureCount > 0 ? " • \(failureCount) item(s) skipped" : "")."
+                Text(cleanedText)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.mcOnSurfaceVariant)
             }
             
             // 2. Before & After Storage Comparison Card
@@ -37,38 +43,39 @@ struct CleanupResultView: View {
                 VStack(spacing: 12) {
                     HStack {
                         Image(systemName: "chart.bar.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(Color.mcCyan)
                             .font(.caption)
-                        Text("Storage Impact • Before & After")
+                        Text(isID ? "Dampak Penyimpanan • Sebelum & Sesudah" : "Storage Impact • Before & After")
                             .font(.caption)
                             .fontWeight(.semibold)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(Color.mcOnSurfaceVariant)
                         Spacer()
                     }
                     
                     HStack(spacing: 0) {
                         // BEFORE Column
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("BEFORE")
+                            Text(isID ? "SEBELUM" : "BEFORE")
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color.mcOutline)
                             
                             HStack(spacing: 4) {
-                                Text("Free:")
+                                Text(isID ? "Bebas:" : "Free:")
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOutline)
                                 Text(ByteFormatter.string(from: ba.beforeFreeBytes))
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
+                                    .foregroundColor(Color.mcOnSurface)
                             }
                             
                             HStack(spacing: 4) {
-                                Text("Used:")
+                                Text(isID ? "Terpakai:" : "Used:")
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOutline)
                                 Text(ByteFormatter.string(from: ba.beforeUsedBytes))
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOnSurfaceVariant)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -77,41 +84,41 @@ struct CleanupResultView: View {
                         VStack(spacing: 4) {
                             Image(systemName: "arrow.right.circle.fill")
                                 .font(.system(size: 18))
-                                .foregroundColor(.green)
+                                .foregroundColor(Color.mcEmerald)
                             
                             Text("+\(ByteFormatter.string(from: ba.freeSpaceGain))")
                                 .font(.system(size: 11, weight: .bold, design: .rounded))
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.14))
-                                .foregroundColor(.green)
+                                .background(Color.mcEmerald.opacity(0.14))
+                                .foregroundColor(Color.mcEmerald)
                                 .cornerRadius(4)
                         }
                         .padding(.horizontal, 8)
                         
                         // AFTER Column
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("AFTER")
+                            Text(isID ? "SESUDAH" : "AFTER")
                                 .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(Color.mcOutline)
                             
                             HStack(spacing: 4) {
-                                Text("Free:")
+                                Text(isID ? "Bebas:" : "Free:")
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOutline)
                                 Text(ByteFormatter.string(from: ba.effectiveAfterFreeBytes))
                                     .font(.subheadline)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.green)
+                                    .foregroundColor(Color.mcEmerald)
                             }
                             
                             HStack(spacing: 4) {
-                                Text("Used:")
+                                Text(isID ? "Terpakai:" : "Used:")
                                     .font(.caption2)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOutline)
                                 Text(ByteFormatter.string(from: ba.effectiveAfterUsedBytes))
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(Color.mcOnSurfaceVariant)
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -125,16 +132,16 @@ struct CleanupResultView: View {
                         HStack(spacing: 8) {
                             ForEach(ba.categoryStats) { stat in
                                 HStack(spacing: 4) {
-                                    Text(stat.category.rawValue)
+                                    Text(stat.category.displayName(for: languageManager.language))
                                         .font(.system(size: 10, weight: .medium))
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(Color.mcOutline)
                                     Text(ByteFormatter.string(from: stat.bytes))
                                         .font(.system(size: 10, weight: .bold))
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(Color.mcOnSurface)
                                 }
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color(NSColor.separatorColor).opacity(0.15))
+                                .background(Color.mcSurfaceHighest)
                                 .cornerRadius(4)
                             }
                             Spacer()
@@ -142,17 +149,17 @@ struct CleanupResultView: View {
                     }
                 }
                 .padding(14)
-                .background(Color(NSColor.controlBackgroundColor))
+                .background(Color.mcSurfaceHigh)
                 .cornerRadius(10)
             }
             
             // 3. Failures List (if any)
             if failureCount > 0 {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Issues encountered during cleanup:")
+                    Text(isID ? "Kendala yang dihadapi saat pembersihan:" : "Issues encountered during cleanup:")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.red)
+                        .foregroundColor(Color.mcCoral)
                     
                     ScrollView {
                         VStack(alignment: .leading, spacing: 8) {
@@ -164,11 +171,11 @@ struct CleanupResultView: View {
                                         .lineLimit(1)
                                     Text("Reason: \(String(describing: result.status))")
                                         .font(.system(size: 9))
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(Color.mcOutline)
                                 }
                                 .padding(8)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.red.opacity(0.08))
+                                .background(Color.mcCoral.opacity(0.1))
                                 .cornerRadius(6)
                             }
                         }
@@ -181,19 +188,19 @@ struct CleanupResultView: View {
             // 4. macOS Trash Reassurance Note
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "trash.fill")
-                    .foregroundColor(.orange)
+                    .foregroundColor(Color.mcCoral)
                     .font(.caption)
                     .padding(.top, 1)
                 
-                Text("Files were safely moved to your macOS Trash. You can inspect or restore them at any time. To permanently reclaim physical APFS storage, empty the Trash in Finder.")
+                Text(isID ? "Berkas telah dipindahkan secara aman ke Tempat Sampah macOS. Anda dapat memeriksa atau memulihkannya kapan saja. Untuk mengosongkan ruang APFS secara fisik, kosongkan Tempat Sampah di Finder." : "Files were safely moved to your macOS Trash. You can inspect or restore them at any time. To permanently reclaim physical APFS storage, empty the Trash in Finder.")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.mcOnSurfaceVariant)
                     .fixedSize(horizontal: false, vertical: true)
                 
                 Spacer()
             }
             .padding(10)
-            .background(Color(NSColor.controlBackgroundColor).opacity(0.6))
+            .background(Color.mcSurfaceHigh.opacity(0.6))
             .cornerRadius(8)
             
             // 5. Actions
@@ -203,16 +210,17 @@ struct CleanupResultView: View {
                 }) {
                     HStack(spacing: 6) {
                         Image(systemName: "folder")
-                        Text("Open Trash in Finder")
+                        Text(isID ? "Buka Tempat Sampah di Finder" : "Open Trash in Finder")
                     }
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 
-                Button("Done") {
+                Button(isID ? "Selesai" : "Done") {
                     isPresented = false
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Color.mcCyan)
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
             }

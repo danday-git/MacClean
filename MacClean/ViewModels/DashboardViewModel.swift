@@ -9,6 +9,21 @@ enum SortOption: String, CaseIterable, Identifiable {
     case confidence = "Confidence"
     
     var id: String { rawValue }
+    
+    func displayName(for language: AppLanguage) -> String {
+        switch (self, language) {
+        case (.largestFirst, .indonesian): return "Ukuran (Terbesar)"
+        case (.largestFirst, .english): return "Size (Largest)"
+        case (.smallestFirst, .indonesian): return "Ukuran (Terkecil)"
+        case (.smallestFirst, .english): return "Size (Smallest)"
+        case (.category, .indonesian): return "Kategori"
+        case (.category, .english): return "Category"
+        case (.name, .indonesian): return "Nama (A-Z)"
+        case (.name, .english): return "Name (A-Z)"
+        case (.confidence, .indonesian): return "Tingkat Keamanan"
+        case (.confidence, .english): return "Safety Level"
+        }
+    }
 }
 
 enum FilterOption: String, CaseIterable, Identifiable {
@@ -202,6 +217,20 @@ class DashboardViewModel: ObservableObject {
         isScanning = false
         currentScanningStatus = "Scan cancelled"
         scanWarnings.append(.scanCancelled)
+    }
+    
+    func localizedScanningStatus(for language: AppLanguage) -> String {
+        let status = currentScanningStatus
+        guard language == .indonesian else { return status }
+        if status.contains("Reading disk capacity") { return "Membaca kapasitas disk..." }
+        if status.contains("Analyzing storage") { return "Menganalisis penyimpanan..." }
+        if status.contains("Scan cancelled") { return "Pemindaian dibatalkan" }
+        if status.contains("Scanning application leftovers") { return "Memindai sisa-sisa aplikasi..." }
+        if status.contains("Scanning caches") { return "Memindai berkas cache..." }
+        if status.contains("Scanning developer data") { return "Memindai data pengembang..." }
+        if status.contains("Scanning large files") { return "Memindai berkas-berkas besar..." }
+        if status.contains("Finalizing scan results") { return "Menyelesaikan hasil pemindaian..." }
+        return status
     }
     
     func recalculateReclaimable() {

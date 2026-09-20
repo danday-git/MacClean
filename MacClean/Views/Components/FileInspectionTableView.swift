@@ -3,6 +3,8 @@ import SwiftUI
 struct FileInspectionTableView: View {
     @ObservedObject var viewModel: DashboardViewModel
     @ObservedObject var selection: CleanupSelectionViewModel
+    @ObservedObject private var languageManager = LanguageManager.shared
+    var onSelectionChanged: (() -> Void)? = nil
     
     @State private var hoveredItemId: UUID? = nil
     
@@ -118,11 +120,12 @@ struct FileInspectionTableView: View {
     
     // MARK: - Header Titles
     private var headerTitles: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("Item Rekomendasi Pembersihan")
+        let isID = languageManager.language == .indonesian
+        return VStack(alignment: .leading, spacing: 2) {
+            Text(isID ? "Item Rekomendasi Pembersihan" : "Recommended Cleanup Items")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundColor(Color.mcOnSurface)
-            Text("Ditinjau dan dapat dilepaskan instan tanpa mengganggu kestabilan macOS.")
+            Text(isID ? "Ditinjau dan dapat dilepaskan instan tanpa mengganggu kestabilan macOS." : "Reviewed and can be safely reclaimed without affecting macOS stability.")
                 .font(.system(size: 12))
                 .foregroundColor(Color.mcOnSurfaceVariant)
         }
@@ -130,14 +133,40 @@ struct FileInspectionTableView: View {
     
     // MARK: - Toolbar Controls
     private var toolbarControls: some View {
-        HStack(spacing: 8) {
+        let isID = languageManager.language == .indonesian
+        return HStack(spacing: 8) {
+            // Pilih Rekomendasi / Batal Pilih Action
+            Button(action: {
+                let isAllRecommendedSelected = selection.isAllRecommendedSelected(from: viewModel.categoryItems)
+                if isAllRecommendedSelected {
+                    selection.clearSelection()
+                } else {
+                    selection.selectRecommended(in: viewModel.categoryItems)
+                }
+                onSelectionChanged?()
+            }) {
+                let selectLabel = selection.isAllRecommendedSelected(from: viewModel.categoryItems) ? (isID ? "Batal Pilih" : "Deselect") : (isID ? "Pilih Rekomendasi" : "Select Recommended")
+                Text(selectLabel)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(Color.mcOnSurface)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.mcSurfaceHigh.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.mcCyan.opacity(0.4), lineWidth: 1)
+                    )
+                    .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
+            
             // Search Input
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 13))
                     .foregroundColor(Color.mcOutline)
                 
-                TextField("Filter berkas...", text: $viewModel.searchText)
+                TextField(isID ? "Filter berkas..." : "Filter files...", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
                     .font(.system(size: 12))
                     .foregroundColor(Color.mcOnSurface)
@@ -163,12 +192,12 @@ struct FileInspectionTableView: View {
             
             // Category Filter Picker
             Menu {
-                Button("Semua Kategori") {
+                Button(isID ? "Semua Kategori" : "All Categories") {
                     viewModel.selectedCategoryFilter = nil
                 }
                 Divider()
                 ForEach(CleanupCategory.allCases) { cat in
-                    Button(cat.rawValue) {
+                    Button(cat.displayName(for: languageManager.language)) {
                         viewModel.selectedCategoryFilter = cat
                     }
                 }
@@ -176,7 +205,7 @@ struct FileInspectionTableView: View {
                 HStack(spacing: 5) {
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 11))
-                    Text(viewModel.selectedCategoryFilter?.rawValue ?? "Semua Kategori")
+                    Text(viewModel.selectedCategoryFilter?.displayName(for: languageManager.language) ?? (isID ? "Semua Kategori" : "All Categories"))
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(Color.mcOnSurface)
@@ -194,7 +223,7 @@ struct FileInspectionTableView: View {
             // Sort Picker
             Menu {
                 ForEach(SortOption.allCases) { sort in
-                    Button(sort.rawValue) {
+                    Button(sort.displayName(for: languageManager.language)) {
                         viewModel.selectedSort = sort
                     }
                 }
@@ -202,7 +231,7 @@ struct FileInspectionTableView: View {
                 HStack(spacing: 5) {
                     Image(systemName: "arrow.up.arrow.down")
                         .font(.system(size: 11))
-                    Text(viewModel.selectedSort.rawValue)
+                    Text(viewModel.selectedSort.displayName(for: languageManager.language))
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(Color.mcOnSurface)
@@ -226,6 +255,7 @@ struct FileInspectionTableView: View {
             Button(action: {
                 let eligible = allDisplayItems.filter { $0.isEligibleForCleanup }
                 selection.toggleSelectAll(in: eligible)
+                onSelectionChanged?()
             }) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 4)
@@ -245,27 +275,28 @@ struct FileInspectionTableView: View {
             .buttonStyle(.plain)
             .frame(width: 24, alignment: .center)
             
-            Text("NAMA BERKAS / KOMPONEN")
+            let isID = languageManager.language == .indonesian
+            Text(isID ? "NAMA BERKAS / KOMPONEN" : "FILE NAME / COMPONENT")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Color.mcOutline)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            Text("DIREKTORI SISTEM")
+            Text(isID ? "DIREKTORI SISTEM" : "SYSTEM DIRECTORY")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Color.mcOutline)
                 .frame(maxWidth: 220, alignment: .leading)
             
-            Text("TINGKAT KEAMANAN")
+            Text(isID ? "TINGKAT KEAMANAN" : "SAFETY LEVEL")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Color.mcOutline)
                 .frame(width: 140, alignment: .leading)
             
-            Text("UKURAN")
+            Text(isID ? "UKURAN" : "SIZE")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Color.mcOutline)
                 .frame(width: 80, alignment: .trailing)
             
-            Text("AKSI")
+            Text(isID ? "AKSI" : "ACTION")
                 .font(.system(size: 10, weight: .semibold, design: .monospaced))
                 .foregroundColor(Color.mcOutline)
                 .frame(width: 44, alignment: .center)
@@ -284,6 +315,7 @@ struct FileInspectionTableView: View {
             // Row Checkbox
             Button(action: {
                 selection.toggle(item)
+                onSelectionChanged?()
             }) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 4)
@@ -325,7 +357,7 @@ struct FileInspectionTableView: View {
                         .foregroundColor(Color.mcOnSurface)
                         .lineLimit(1)
                     
-                    Text(item.humanExplanationText)
+                    Text(item.humanExplanationText(for: languageManager.language))
                         .font(.system(size: 10))
                         .foregroundColor(Color.mcOutline)
                         .lineLimit(1)
@@ -352,6 +384,7 @@ struct FileInspectionTableView: View {
                 .frame(width: 80, alignment: .trailing)
             
             // Action (Reveal in Finder)
+            let isID = languageManager.language == .indonesian
             Button(action: {
                 viewModel.revealInFinder(url: item.path)
             }) {
@@ -363,7 +396,7 @@ struct FileInspectionTableView: View {
                     .cornerRadius(6)
             }
             .buttonStyle(.plain)
-            .help("Buka di Finder")
+            .help(isID ? "Buka di Finder" : "Reveal in Finder")
             .frame(width: 44, alignment: .center)
         }
         .padding(.horizontal, 14)
@@ -376,13 +409,14 @@ struct FileInspectionTableView: View {
     
     // MARK: - Security Badge Subview
     private func securityBadge(for item: ScanResultItem) -> some View {
+        let isID = languageManager.language == .indonesian
         if item.isEligibleForCleanup {
             return AnyView(
                 HStack(spacing: 5) {
                     Circle()
                         .fill(Color.mcEmerald)
                         .frame(width: 6, height: 6)
-                    Text("Aman (Rekomendasi)")
+                    Text(isID ? "Aman (Rekomendasi)" : "Safe (Recommended)")
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(Color.mcEmerald)
                 }
@@ -401,7 +435,7 @@ struct FileInspectionTableView: View {
                     Circle()
                         .fill(Color.mcViolet)
                         .frame(width: 6, height: 6)
-                    Text("Periksa Ulang")
+                    Text(isID ? "Periksa Ulang" : "Review Carefully")
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(Color.mcViolet)
                 }
@@ -420,7 +454,7 @@ struct FileInspectionTableView: View {
                     Circle()
                         .fill(Color.mcOutline)
                         .frame(width: 6, height: 6)
-                    Text("Arsip Lama")
+                    Text(isID ? "Arsip Lama" : "Old Archive")
                         .font(.system(size: 10, weight: .medium, design: .monospaced))
                         .foregroundColor(Color.mcOutline)
                 }
@@ -464,14 +498,15 @@ struct FileInspectionTableView: View {
     }
     
     private var emptyItemsPlaceholder: some View {
-        VStack(spacing: 8) {
+        let isID = languageManager.language == .indonesian
+        return VStack(spacing: 8) {
             Image(systemName: "checkmark.shield.fill")
                 .font(.system(size: 28))
                 .foregroundColor(Color.mcEmerald)
-            Text("Tidak ada berkas yang cocok dengan filter")
+            Text(isID ? "Tidak ada berkas yang cocok dengan filter" : "No files matching current filter")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundColor(Color.mcOnSurface)
-            Text("Semua sistem optimal dan tidak ada item tersisa.")
+            Text(isID ? "Semua sistem optimal dan tidak ada item tersisa." : "System is optimal and no remaining items found.")
                 .font(.system(size: 11))
                 .foregroundColor(Color.mcOutline)
         }

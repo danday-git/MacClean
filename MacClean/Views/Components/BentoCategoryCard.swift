@@ -4,7 +4,10 @@ struct BentoCategoryCard: View {
     let category: CleanupCategory
     let items: [ScanResultItem]
     @ObservedObject var selection: CleanupSelectionViewModel
+    @ObservedObject private var languageManager = LanguageManager.shared
+    var isFilterActive: Bool = false
     var onFilterSelected: (() -> Void)? = nil
+    var onSelectionChanged: (() -> Void)? = nil
     
     private var eligibleItems: [ScanResultItem] {
         items.filter { $0.isEligibleForCleanup }
@@ -33,42 +36,40 @@ struct BentoCategoryCard: View {
     }
     
     private var titleText: String {
-        switch category {
-        case .appLeftovers: return "Sisa Aplikasi"
-        case .caches: return "Cache Sistem"
-        case .developerData: return "Data Pengembang"
-        case .largeFiles: return "Berkas & Arsip Besar"
-        }
+        category.displayName(for: languageManager.language)
     }
     
     private var subtitleText: String {
+        let isID = languageManager.language == .indonesian
         switch category {
-        case .appLeftovers: return "Bundle data dari app terhapus"
-        case .caches: return "Log usang, preview, & WebKit"
+        case .appLeftovers: return isID ? "Bundle data dari app terhapus" : "Data bundles from deleted apps"
+        case .caches: return isID ? "Log usang, preview, & WebKit" : "Outdated logs, previews & WebKit"
         case .developerData: return "Xcode, DerivedData, node_modules"
-        case .largeFiles: return "DMG lama, ZIP instalasi >500 MB"
+        case .largeFiles: return isID ? "DMG lama, ZIP instalasi >500 MB" : "Old DMGs, install archives >500 MB"
         }
     }
     
     private var statusBadgeText: String {
+        let isID = languageManager.language == .indonesian
         switch category {
-        case .appLeftovers: return "Siap"
-        case .caches: return "Siap"
-        case .developerData: return "Periksa"
+        case .appLeftovers: return isID ? "Siap" : "Ready"
+        case .caches: return isID ? "Siap" : "Ready"
+        case .developerData: return isID ? "Periksa" : "Review"
         case .largeFiles: return ">500 MB"
         }
     }
     
     private var countDetailText: String {
+        let isID = languageManager.language == .indonesian
         switch category {
         case .appLeftovers:
-            return "\(items.count) item terdeteksi"
+            return isID ? "\(items.count) item terdeteksi" : "\(items.count) items detected"
         case .caches:
-            return "Aman dibersihkan"
+            return isID ? "Aman dibersihkan" : "Safe to clean"
         case .developerData:
-            return "Rebuildable artifacts"
+            return isID ? "Artefak dapat di-rebuild" : "Rebuildable artifacts"
         case .largeFiles:
-            return "\(items.count) arsip ditemukan"
+            return isID ? "\(items.count) arsip ditemukan" : "\(items.count) archives found"
         }
     }
     
@@ -78,16 +79,16 @@ struct BentoCategoryCard: View {
             HStack(alignment: .center) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.mcSurfaceHigh)
+                        .fill(isFilterActive ? Color.mcCyan.opacity(0.15) : Color.mcSurfaceHigh)
                         .frame(width: 40, height: 40)
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
+                                .stroke(isFilterActive ? Color.mcCyan.opacity(0.5) : Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
                         )
                     
                     Image(systemName: iconName)
                         .font(.system(size: 20))
-                        .foregroundColor(isCategorySelected ? Color.mcCyan : Color.mcOutline)
+                        .foregroundColor(isFilterActive ? Color.mcCyan : Color.mcOutline)
                 }
                 
                 Spacer()
@@ -95,6 +96,7 @@ struct BentoCategoryCard: View {
                 // Direct Category Checkbox
                 Button(action: {
                     selection.toggleSelectAll(in: eligibleItems)
+                    onSelectionChanged?()
                 }) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 5)
@@ -114,14 +116,14 @@ struct BentoCategoryCard: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(eligibleItems.isEmpty)
-                .help("Pilih atau batalkan semua item di \(titleText)")
+                .help(languageManager.language == .indonesian ? "Pilih atau batalkan semua item di \(titleText)" : "Select or deselect all items in \(titleText)")
             }
             
             // MARK: - Title & Subtitle
             VStack(alignment: .leading, spacing: 3) {
                 Text(titleText)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(Color.mcOnSurface)
+                    .foregroundColor(isFilterActive ? Color.mcCyan : Color.mcOnSurface)
                     .lineLimit(1)
                 
                 Text(subtitleText)
@@ -151,26 +153,26 @@ struct BentoCategoryCard: View {
                     .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Color.mcSurfaceHighest)
+                    .background(isCategorySelected ? Color.mcCyan.opacity(0.15) : Color.mcSurfaceHighest)
                     .foregroundColor(isCategorySelected ? Color.mcCyan : Color.mcOutline)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
+                            .stroke(isCategorySelected ? Color.mcCyan.opacity(0.5) : Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
                     )
                     .cornerRadius(12)
             }
         }
         .padding(16)
-        .background(Color.mcSurfaceContainer.opacity(isCategorySelected ? 0.9 : 0.65))
+        .background(isFilterActive ? Color.mcSurfaceHigh.opacity(0.9) : Color.mcSurfaceContainer.opacity(0.65))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
-                    isCategorySelected ? Color.mcCyan.opacity(0.4) : Color.mcOutlineVariant.opacity(0.25),
-                    lineWidth: isCategorySelected ? 1.5 : 1
+                    isFilterActive ? Color.mcCyan : Color.mcOutlineVariant.opacity(0.25),
+                    lineWidth: isFilterActive ? 2 : 1
                 )
         )
         .cornerRadius(16)
-        .shadow(color: isCategorySelected ? Color.mcCyan.opacity(0.06) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+        .shadow(color: isFilterActive ? Color.mcCyan.opacity(0.15) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
         .contentShape(Rectangle())
         .onTapGesture {
             onFilterSelected?()

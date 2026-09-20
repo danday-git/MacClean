@@ -5,6 +5,7 @@ struct StorageHeroHeaderView: View {
     let breakdown: StorageBreakdown?
     let reclaimableBytes: Int64
     
+    @ObservedObject private var languageManager = LanguageManager.shared
     @State private var isPulsing = false
     
     private var totalBytes: Int64 {
@@ -114,7 +115,7 @@ struct StorageHeroHeaderView: View {
                         .cornerRadius(4)
                 }
                 
-                Text("Internal Solid State Drive • 98% Kesehatan SSD (36°C)")
+                Text(languageManager.language == .indonesian ? "Internal Solid State Drive • 98% Kesehatan SSD (36°C)" : "Internal Solid State Drive • 98% SSD Health (36°C)")
                     .font(.system(size: 12))
                     .foregroundColor(Color.mcOnSurfaceVariant)
             }
@@ -124,9 +125,9 @@ struct StorageHeroHeaderView: View {
     // MARK: - Telemetry Badges Subview
     private var telemetryBadgesView: some View {
         HStack(spacing: 8) {
-            // TERPAKAI
+            // TERPAKAI / USED
             HStack(spacing: 4) {
-                Text("TERPAKAI:")
+                Text(languageManager.language == .indonesian ? "TERPAKAI:" : "USED:")
                     .font(.system(size: 10, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.mcOutline)
                 Text(ByteFormatter.string(from: summary.usedSpace))
@@ -145,14 +146,15 @@ struct StorageHeroHeaderView: View {
             )
             .cornerRadius(10)
             
-            // BEBAS (Pulsing Emerald)
+            // BEBAS / FREE (Pulsing Emerald)
             HStack(spacing: 6) {
                 Circle()
                     .fill(Color.mcEmerald)
                     .frame(width: 7, height: 7)
                     .scaleEffect(isPulsing ? 1.25 : 0.85)
                     .opacity(isPulsing ? 1.0 : 0.6)
-                Text("\(ByteFormatter.string(from: summary.freeSpace)) Bebas")
+                let freeLabel = languageManager.language == .indonesian ? "\(ByteFormatter.string(from: summary.freeSpace)) Bebas" : "\(ByteFormatter.string(from: summary.freeSpace)) Free"
+                Text(freeLabel)
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundColor(Color.mcEmerald)
             }
@@ -187,7 +189,8 @@ struct StorageHeroHeaderView: View {
     
     // MARK: - Slim Segmented Visual Bar
     private var segmentedStorageBar: some View {
-        GeometryReader { geo in
+        let isID = languageManager.language == .indonesian
+        return GeometryReader { geo in
             let totalW = geo.size.width
             let appsW = max(3, totalW * CGFloat(appsFraction))
             let devW = max(3, totalW * CGFloat(devFraction))
@@ -200,31 +203,31 @@ struct StorageHeroHeaderView: View {
                 Rectangle()
                     .fill(Color.mcCyanGlow)
                     .frame(width: appsW)
-                    .help("Aplikasi: \(ByteFormatter.string(from: breakdown?.applicationsBytes ?? 0))")
+                    .help(isID ? "Aplikasi: \(ByteFormatter.string(from: breakdown?.applicationsBytes ?? 0))" : "Applications: \(ByteFormatter.string(from: breakdown?.applicationsBytes ?? 0))")
                 
                 // 2. Data Pengembang
                 Rectangle()
                     .fill(Color.mcCyan)
                     .frame(width: devW)
-                    .help("Data Pengembang: \(ByteFormatter.string(from: breakdown?.developerDataBytes ?? 0))")
+                    .help(isID ? "Data Pengembang: \(ByteFormatter.string(from: breakdown?.developerDataBytes ?? 0))" : "Developer Data: \(ByteFormatter.string(from: breakdown?.developerDataBytes ?? 0))")
                 
                 // 3. Sistem & macOS
                 Rectangle()
                     .fill(Color.mcViolet)
                     .frame(width: sysW)
-                    .help("Sistem & macOS: \(ByteFormatter.string(from: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? 0)))")
+                    .help(isID ? "Sistem & macOS: \(ByteFormatter.string(from: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? 0)))" : "System & macOS: \(ByteFormatter.string(from: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? 0)))")
                 
                 // 4. Cache & Log
                 Rectangle()
                     .fill(Color.mcCoral)
                     .frame(width: cacheW)
-                    .help("Cache & Log: \(ByteFormatter.string(from: breakdown?.cachesBytes ?? 0))")
+                    .help(isID ? "Cache & Log: \(ByteFormatter.string(from: breakdown?.cachesBytes ?? 0))" : "Caches & Logs: \(ByteFormatter.string(from: breakdown?.cachesBytes ?? 0))")
                 
                 // 5. Bebas
                 Rectangle()
                     .fill(Color.mcSurfaceVariant.opacity(0.45))
                     .frame(width: freeW)
-                    .help("Bebas: \(ByteFormatter.string(from: summary.freeSpace))")
+                    .help(isID ? "Bebas: \(ByteFormatter.string(from: summary.freeSpace))" : "Free: \(ByteFormatter.string(from: summary.freeSpace))")
             }
             .clipShape(Capsule())
             .overlay(
@@ -237,26 +240,27 @@ struct StorageHeroHeaderView: View {
     
     // MARK: - Color Legend Breakdown Pills
     private var colorLegendView: some View {
-        ViewThatFits(in: .horizontal) {
+        let isID = languageManager.language == .indonesian
+        return ViewThatFits(in: .horizontal) {
             // Single row
             HStack(spacing: 16) {
-                legendItem(title: "Aplikasi", bytes: breakdown?.applicationsBytes ?? Int64(Double(summary.usedSpace) * 0.45), color: Color.mcCyanGlow)
-                legendItem(title: "Data Pengembang", bytes: breakdown?.developerDataBytes ?? Int64(Double(summary.usedSpace) * 0.20), color: Color.mcCyan)
-                legendItem(title: "Sistem & macOS", bytes: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? Int64(Double(summary.usedSpace) * 0.25)), color: Color.mcViolet)
-                legendItem(title: "Cache & Log", bytes: breakdown?.cachesBytes ?? Int64(Double(summary.usedSpace) * 0.10), color: Color.mcCoral)
-                legendItem(title: "Bebas", bytes: summary.freeSpace, color: Color.mcEmerald)
+                legendItem(title: isID ? "Aplikasi" : "Applications", bytes: breakdown?.applicationsBytes ?? Int64(Double(summary.usedSpace) * 0.45), color: Color.mcCyanGlow)
+                legendItem(title: isID ? "Data Pengembang" : "Developer Data", bytes: breakdown?.developerDataBytes ?? Int64(Double(summary.usedSpace) * 0.20), color: Color.mcCyan)
+                legendItem(title: isID ? "Sistem & macOS" : "System & macOS", bytes: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? Int64(Double(summary.usedSpace) * 0.25)), color: Color.mcViolet)
+                legendItem(title: isID ? "Cache & Log" : "Caches & Logs", bytes: breakdown?.cachesBytes ?? Int64(Double(summary.usedSpace) * 0.10), color: Color.mcCoral)
+                legendItem(title: isID ? "Bebas" : "Free", bytes: summary.freeSpace, color: Color.mcEmerald)
             }
             
             // Wrapped 2 rows
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 14) {
-                    legendItem(title: "Aplikasi", bytes: breakdown?.applicationsBytes ?? Int64(Double(summary.usedSpace) * 0.45), color: Color.mcCyanGlow)
-                    legendItem(title: "Data Pengembang", bytes: breakdown?.developerDataBytes ?? Int64(Double(summary.usedSpace) * 0.20), color: Color.mcCyan)
-                    legendItem(title: "Sistem & macOS", bytes: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? Int64(Double(summary.usedSpace) * 0.25)), color: Color.mcViolet)
+                    legendItem(title: isID ? "Aplikasi" : "Applications", bytes: breakdown?.applicationsBytes ?? Int64(Double(summary.usedSpace) * 0.45), color: Color.mcCyanGlow)
+                    legendItem(title: isID ? "Data Pengembang" : "Developer Data", bytes: breakdown?.developerDataBytes ?? Int64(Double(summary.usedSpace) * 0.20), color: Color.mcCyan)
+                    legendItem(title: isID ? "Sistem & macOS" : "System & macOS", bytes: (breakdown?.systemAndOtherBytes ?? 0) + (breakdown?.userFilesBytes ?? Int64(Double(summary.usedSpace) * 0.25)), color: Color.mcViolet)
                 }
                 HStack(spacing: 14) {
-                    legendItem(title: "Cache & Log", bytes: breakdown?.cachesBytes ?? Int64(Double(summary.usedSpace) * 0.10), color: Color.mcCoral)
-                    legendItem(title: "Bebas", bytes: summary.freeSpace, color: Color.mcEmerald)
+                    legendItem(title: isID ? "Cache & Log" : "Caches & Logs", bytes: breakdown?.cachesBytes ?? Int64(Double(summary.usedSpace) * 0.10), color: Color.mcCoral)
+                    legendItem(title: isID ? "Bebas" : "Free", bytes: summary.freeSpace, color: Color.mcEmerald)
                 }
             }
         }

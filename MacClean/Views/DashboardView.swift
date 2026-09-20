@@ -2,6 +2,8 @@ import SwiftUI
 
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
+    @StateObject private var languageManager = LanguageManager.shared
+    @AppStorage("isDarkMode") private var isDarkMode: Bool = true
     @State private var showingRecommendationModal = false
     @State private var showingDirectReview = false
     @State private var recommendedCount = 0
@@ -55,7 +57,10 @@ struct DashboardView: View {
                             // 3. Interactive Clean Detail List & Inspection Table
                             FileInspectionTableView(
                                 viewModel: viewModel,
-                                selection: viewModel.selection
+                                selection: viewModel.selection,
+                                onSelectionChanged: {
+                                    viewModel.recalculateReclaimable()
+                                }
                             )
                         } else {
                             loadingStoragePlaceholder
@@ -75,6 +80,10 @@ struct DashboardView: View {
                 .padding(.bottom, 18)
         }
         .frame(minWidth: 700, minHeight: 520)
+        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .onAppear {
+            NSApp.appearance = NSAppearance(named: isDarkMode ? .darkAqua : .aqua)
+        }
         .sheet(isPresented: $showingRecommendationModal) {
             RecommendationExplanationView(
                 count: recommendedCount,
@@ -121,11 +130,12 @@ struct DashboardView: View {
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Color.mcOnSurface)
                 
-                Text("Storage Intelligence")
+                Text(languageManager.language == .indonesian ? "Kecerdasan Penyimpanan" : "Storage Intelligence")
                     .font(.system(size: 12))
                     .foregroundColor(Color.mcOutline)
                 
-                Text("APFS Encrypted • Macintosh HD 1 TB")
+                let totalSpaceStr = viewModel.summary?.totalSpace != nil ? " \(ByteFormatter.string(from: viewModel.summary!.totalSpace))" : ""
+                Text("APFS • Macintosh HD\(totalSpaceStr)")
                     .font(.system(size: 11, design: .monospaced))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -140,118 +150,68 @@ struct DashboardView: View {
             
             Spacer()
             
-            // Right: Search Input, Drive Selector, Pindai Cepat, Settings
-            HStack(spacing: 10) {
-                // Search Input with ⌘F Badge
-                HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.mcOutline)
-                    
-                    TextField("Cari file atau bundle...", text: $viewModel.searchText)
-                        .textFieldStyle(.plain)
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.mcOnSurface)
-                        .frame(width: 145)
-                    
-                    Text("⌘F")
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(Color.mcOutline)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 1)
-                        .background(Color.mcSurfaceHighest)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color.mcOutlineVariant.opacity(0.4), lineWidth: 0.8)
-                        )
-                        .cornerRadius(4)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(Color.mcSurfaceHigh.opacity(0.8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.mcOutlineVariant.opacity(0.2), lineWidth: 1)
-                )
-                .cornerRadius(8)
-                
-                // Drive Selector
-                HStack(spacing: 4) {
-                    Image(systemName: "opticaldiscdrive")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.mcOutline)
-                    Text("Macintosh HD (1 TB)")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color.mcOnSurface)
-                }
-                .padding(.horizontal, 9)
-                .padding(.vertical, 5)
-                .background(Color.mcSurfaceHigh.opacity(0.6))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.mcOutlineVariant.opacity(0.2), lineWidth: 1)
-                )
-                .cornerRadius(8)
-                
-                // Pindai Cepat Action
-                if viewModel.isScanning {
-                    HStack(spacing: 6) {
-                        ProgressView()
-                            .scaleEffect(0.65)
-                        Text(viewModel.currentScanningStatus)
+            // Right: Multi-Language Switcher, Light/Dark Mode Toggle
+            HStack(spacing: 8) {
+                // Multi-Language Switcher Button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        languageManager.toggle()
+                    }
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "globe")
                             .font(.system(size: 12))
+                            .foregroundColor(Color.mcCyan)
+                        Text(languageManager.language.shortLabel)
+                            .font(.system(size: 11, weight: .medium))
                             .foregroundColor(Color.mcOnSurface)
-                            .frame(maxWidth: 120)
-                            .lineLimit(1)
-                        
-                        Button("Batal") {
-                            viewModel.cancelScan()
-                        }
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color.mcCoral)
-                        .buttonStyle(.plain)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(Color.mcSurfaceHigh)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5.5)
+                    .background(Color.mcSurfaceHigh.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.mcOutlineVariant.opacity(0.25), lineWidth: 1)
+                    )
                     .cornerRadius(8)
-                } else {
-                    Button(action: {
-                        viewModel.scan()
-                    }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "arrow.triangle.2.circlepath")
-                                .font(.system(size: 12))
-                            Text("Pindai Cepat")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .foregroundColor(Color.mcOnSurface)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.mcSurfaceHigh)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.mcOutlineVariant.opacity(0.4), lineWidth: 1)
-                        )
-                        .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
-                }
-                
-                // System Settings Icon
-                Button(action: {}) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 13))
-                        .foregroundColor(Color.mcOutline)
-                        .frame(width: 28, height: 28)
-                        .background(Color.mcSurfaceHigh.opacity(0.8))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.mcOutlineVariant.opacity(0.2), lineWidth: 1)
-                        )
-                        .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
+                .help(languageManager.language == .indonesian ? "Beralih ke English" : "Switch to Bahasa Indonesia")
+                .contextMenu {
+                    Button("Bahasa Indonesia (ID)") {
+                        languageManager.language = .indonesian
+                    }
+                    Button("English (EN)") {
+                        languageManager.language = .english
+                    }
+                }
+                
+                // Light / Dark Mode Toggle Button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isDarkMode.toggle()
+                        NSApp.appearance = NSAppearance(named: isDarkMode ? .darkAqua : .aqua)
+                    }
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: isDarkMode ? "moon.stars.fill" : "sun.max.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(isDarkMode ? Color.mcViolet : Color.mcCyan)
+                        Text(isDarkMode ? (languageManager.language == .indonesian ? "Gelap" : "Dark") : (languageManager.language == .indonesian ? "Terang" : "Light"))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color.mcOnSurface)
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5.5)
+                    .background(Color.mcSurfaceHigh.opacity(0.8))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.mcOutlineVariant.opacity(0.25), lineWidth: 1)
+                    )
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .help(isDarkMode ? (languageManager.language == .indonesian ? "Beralih ke Mode Terang" : "Switch to Light Mode") : (languageManager.language == .indonesian ? "Beralih ke Mode Gelap" : "Switch to Dark Mode"))
             }
         }
         .padding(.horizontal, 20)
@@ -270,27 +230,32 @@ struct DashboardView: View {
                     category: cat,
                     items: viewModel.categoryItems[cat] ?? [],
                     selection: viewModel.selection,
+                    isFilterActive: viewModel.selectedCategoryFilter == cat,
                     onFilterSelected: {
                         if viewModel.selectedCategoryFilter == cat {
                             viewModel.selectedCategoryFilter = nil
                         } else {
                             viewModel.selectedCategoryFilter = cat
                         }
+                    },
+                    onSelectionChanged: {
+                        viewModel.recalculateReclaimable()
                     }
                 )
             }
         }
     }
     
-    // MARK: - Floating Bottom Action Dock
+    // MARK: - Floating Bottom Action Dock (Unified Primary Action)
     private var floatingBottomActionDock: some View {
+        let isID = languageManager.language == .indonesian
         let selectedCount = viewModel.selection.selectedItems.count
         let selectedBytes = viewModel.selection.selectedSize(from: viewModel.categoryItems)
         let totalEligible = viewModel.totalPotentialReclaimable
-        let isAllSelected = viewModel.selection.isAllRecommendedSelected(from: viewModel.categoryItems)
+        let hasScanned = viewModel.scanSummary != nil
         
         return HStack(alignment: .center, spacing: 16) {
-            // Left: Shield Icon & Status Text
+            // Left: Shield/Sparkle Icon & Dynamic Status Description
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
@@ -300,79 +265,152 @@ struct DashboardView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
                         )
-                    Image(systemName: "shield.fill")
-                        .font(.system(size: 19))
+                    Image(systemName: hasScanned ? "shield.fill" : "sparkles")
+                        .font(.system(size: 18))
                         .foregroundColor(Color.mcCyan)
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(spacing: 6) {
-                        Text(selectedCount == 0 ? "0 item dipilih" : "\(selectedCount) item dipilih")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(Color.mcOnSurface)
+                    if viewModel.isScanning {
+                        HStack(spacing: 6) {
+                            Text(isID ? "Memindai Penyimpanan..." : "Scanning Storage...")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color.mcOnSurface)
+                            
+                            Text("•")
+                                .foregroundColor(Color.mcOutline)
+                            
+                            Text(viewModel.localizedScanningStatus(for: languageManager.language))
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color.mcCyan)
+                                .lineLimit(1)
+                        }
                         
-                        Text("•")
-                            .foregroundColor(Color.mcOutline)
+                        Text(isID ? "Memeriksa cache sistem, sisa aplikasi, dan file besar" : "Inspecting system caches, app leftovers, and large files")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.mcOnSurfaceVariant)
+                    } else if !hasScanned {
+                        HStack(spacing: 6) {
+                            Text(isID ? "Pindai Sistem Siap Dilakukan" : "System Scan Ready")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color.mcOnSurface)
+                        }
                         
-                        Text(selectedCount == 0 ? "\(ByteFormatter.string(from: totalEligible)) siap dilepaskan" : "\(ByteFormatter.string(from: selectedBytes)) siap dilepaskan")
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
-                            .foregroundColor(Color.mcPrimary)
+                        Text(isID ? "Analisis cepat & aman tanpa mengubah atau menghapus file Anda" : "Fast & safe analysis without modifying or deleting your files")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.mcOnSurfaceVariant)
+                    } else {
+                        HStack(spacing: 6) {
+                            Text(selectedCount == 0 ? (isID ? "0 item dipilih" : "0 items selected") : (isID ? "\(selectedCount) item dipilih" : "\(selectedCount) items selected"))
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(Color.mcOnSurface)
+                            
+                            Text("•")
+                                .foregroundColor(Color.mcOutline)
+                            
+                            Text(selectedCount == 0 ? (isID ? "\(ByteFormatter.string(from: totalEligible)) potensi dilepaskan" : "\(ByteFormatter.string(from: totalEligible)) potential to reclaim") : (isID ? "\(ByteFormatter.string(from: selectedBytes)) siap dilepaskan" : "\(ByteFormatter.string(from: selectedBytes)) ready to reclaim"))
+                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .foregroundColor(Color.mcPrimary)
+                        }
+                        
+                        Text(isID ? "Trash Safe: Dipindahkan ke Tempat Sampah, dapat dipulihkan kapan saja" : "Trash Safe: Moved to macOS Trash, can be restored at any time")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.mcOnSurfaceVariant)
                     }
-                    
-                    Text("Trash Safe: Dipindahkan ke Tempat Sampah, dapat dipulihkan kapan saja")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.mcOnSurfaceVariant)
                 }
             }
             
             Spacer()
             
-            // Right: CTA Action Buttons
+            // Right: Unified CTA Action Controls
             HStack(spacing: 10) {
-                // Pilih Semua Rekomendasi / Batal Pilih
-                Button(action: {
-                    if isAllSelected {
-                        viewModel.selection.clearSelection()
-                    } else {
-                        viewModel.selection.selectRecommended(in: viewModel.categoryItems)
+                if viewModel.isScanning {
+                    // Scanning State Controls
+                    HStack(spacing: 10) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        
+                        Button(action: {
+                            viewModel.cancelScan()
+                        }) {
+                            Text(isID ? "Batal" : "Cancel")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color.mcCoral)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(Color.mcSurfaceHighest)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.mcCoral.opacity(0.4), lineWidth: 1)
+                                )
+                                .cornerRadius(8)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    viewModel.recalculateReclaimable()
-                }) {
-                    Text(isAllSelected ? "Batal Pilih Semua" : "Pilih Semua Rekomendasi")
-                        .font(.system(size: 12, weight: .medium))
+                } else if !hasScanned {
+                    // Pre-Scan State: Pindai Cepat is the Primary CTA!
+                    Button(action: {
+                        viewModel.scan()
+                    }) {
+                        HStack(spacing: 7) {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                                .font(.system(size: 13, weight: .bold))
+                            Text(isID ? "Mulai Pindai Cepat" : "Start Quick Scan")
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundColor(Color.mcOnPrimaryCTA)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 9)
+                        .background(LinearGradient.mcPrimaryCTA)
+                        .cornerRadius(10)
+                        .shadow(color: Color.mcCyanGlow.opacity(0.4), radius: 10, x: 0, y: 3)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    // Post-Scan State: Pindai Ulang + Bersihkan Sekarang
+                    Button(action: {
+                        viewModel.scan()
+                    }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 12))
+                            Text(isID ? "Pindai Ulang" : "Rescan")
+                                .font(.system(size: 12, weight: .medium))
+                        }
                         .foregroundColor(Color.mcOnSurface)
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, 12)
                         .padding(.vertical, 8)
-                        .background(Color.mcSurfaceHighest.opacity(0.8))
+                        .background(Color.mcSurfaceHigh)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 10)
+                            RoundedRectangle(cornerRadius: 8)
                                 .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
                         )
-                        .cornerRadius(10)
-                }
-                .buttonStyle(.plain)
-                .disabled(totalEligible == 0)
-                
-                // Gradient Prominent Button: Bersihkan Sekarang
-                Button(action: {
-                    showingDirectReview = true
-                }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "hand.sparkles.fill")
-                            .font(.system(size: 13))
-                        Text(selectedCount > 0 ? "Bersihkan Sekarang (\(ByteFormatter.string(from: selectedBytes)))" : "Bersihkan Sekarang")
-                            .font(.system(size: 13, weight: .semibold))
+                        .cornerRadius(8)
                     }
-                    .foregroundColor(Color.mcSurfaceLowest)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(LinearGradient.mcPrimaryCTA)
-                    .cornerRadius(10)
-                    .shadow(color: Color.mcCyanGlow.opacity(0.35), radius: 10, x: 0, y: 3)
+                    .buttonStyle(.plain)
+                    .help(isID ? "Pindai ulang sistem penyimpanan" : "Rescan storage system")
+                    
+                    // Gradient Prominent Button: Bersihkan Sekarang
+                    Button(action: {
+                        showingDirectReview = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "hand.sparkles.fill")
+                                .font(.system(size: 13))
+                            let cleanTitle = isID ? "Bersihkan Sekarang" : "Clean Now"
+                            Text(selectedCount > 0 ? "\(cleanTitle) (\(ByteFormatter.string(from: selectedBytes)))" : cleanTitle)
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundColor(selectedCount > 0 ? Color.mcOnPrimaryCTA : Color.mcOutline)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(selectedCount > 0 ? AnyView(LinearGradient.mcPrimaryCTA) : AnyView(Color.mcSurfaceHigh))
+                        .cornerRadius(10)
+                        .shadow(color: selectedCount > 0 ? Color.mcCyanGlow.opacity(0.35) : Color.clear, radius: 10, x: 0, y: 3)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(selectedCount == 0)
                 }
-                .buttonStyle(.plain)
-                .disabled(selectedCount == 0)
-                .opacity(selectedCount == 0 ? 0.5 : 1.0)
             }
         }
         .padding(.horizontal, 18)
@@ -400,14 +438,16 @@ struct DashboardView: View {
     }
     
     private func cleanupSuccessBanner(result: CleanupBeforeAfter) -> some View {
-        HStack(alignment: .top, spacing: 14) {
+        let isID = languageManager.language == .indonesian
+        return HStack(alignment: .top, spacing: 14) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 26))
                 .foregroundColor(Color.mcEmerald)
             
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Cleanup Successful • \(ByteFormatter.string(from: result.bytesMoved)) Moved to Trash")
+                    let title = isID ? "Pembersihan Berhasil • \(ByteFormatter.string(from: result.bytesMoved)) Dipindahkan ke Tempat Sampah" : "Cleanup Successful • \(ByteFormatter.string(from: result.bytesMoved)) Moved to Trash"
+                    Text(title)
                         .font(.subheadline)
                         .fontWeight(.bold)
                         .foregroundColor(Color.mcOnSurface)
@@ -423,15 +463,17 @@ struct DashboardView: View {
                             .padding(4)
                     }
                     .buttonStyle(.plain)
-                    .help("Dismiss notification")
+                    .help(isID ? "Tutup notifikasi" : "Dismiss notification")
                 }
                 
                 HStack(spacing: 6) {
-                    Text("Free space: \(ByteFormatter.string(from: result.beforeFreeBytes)) → \(ByteFormatter.string(from: result.effectiveAfterFreeBytes))")
+                    let freeText = isID ? "Ruang bebas: \(ByteFormatter.string(from: result.beforeFreeBytes)) → \(ByteFormatter.string(from: result.effectiveAfterFreeBytes))" : "Free space: \(ByteFormatter.string(from: result.beforeFreeBytes)) → \(ByteFormatter.string(from: result.effectiveAfterFreeBytes))"
+                    Text(freeText)
                         .font(.caption)
                         .foregroundColor(Color.mcOnSurfaceVariant)
                     
-                    Text("(+\(ByteFormatter.string(from: result.freeSpaceGain)) gained)")
+                    let gainText = isID ? "(+\(ByteFormatter.string(from: result.freeSpaceGain)) bertambah)" : "(+\(ByteFormatter.string(from: result.freeSpaceGain)) gained)"
+                    Text(gainText)
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundColor(Color.mcEmerald)
@@ -440,13 +482,15 @@ struct DashboardView: View {
                         .font(.caption)
                         .foregroundColor(Color.mcOutline)
                     
-                    Text("\(result.itemsMovedCount) items cleaned")
+                    let countText = isID ? "\(result.itemsMovedCount) item dibersihkan" : "\(result.itemsMovedCount) items cleaned"
+                    Text(countText)
                         .font(.caption)
                         .foregroundColor(Color.mcOnSurfaceVariant)
                 }
                 
                 HStack(spacing: 12) {
-                    Text("Files are safe in macOS Trash. Empty Trash in Finder to permanently release physical space.")
+                    let noteText = isID ? "Berkas aman di Tempat Sampah. Kosongkan Tempat Sampah di Finder untuk melepaskan ruang fisik secara permanen." : "Files are safe in macOS Trash. Empty Trash in Finder to permanently release physical space."
+                    Text(noteText)
                         .font(.caption2)
                         .foregroundColor(Color.mcOutline)
                     
@@ -458,7 +502,7 @@ struct DashboardView: View {
                         HStack(spacing: 4) {
                             Image(systemName: "folder")
                                 .font(.caption2)
-                            Text("Open Trash")
+                            Text(isID ? "Buka Tempat Sampah" : "Open Trash")
                                 .font(.caption2)
                                 .fontWeight(.medium)
                         }
@@ -480,17 +524,18 @@ struct DashboardView: View {
     }
     
     private var scanWarningBanner: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        let isID = languageManager.language == .indonesian
+        return VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundColor(Color.mcCoral)
-                Text("Beberapa folder dilewati saat pemindaian")
+                Text(isID ? "Beberapa folder dilewati saat pemindaian" : "Some folders were skipped during scanning")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(Color.mcOnSurface)
             }
             
-            Text("macOS membatasi akses pada beberapa folder sistem. MacClean melewatinya dengan aman dan tetap menampilkan hasil dari area yang dapat diakses.")
+            Text(isID ? "macOS membatasi akses pada beberapa folder sistem. MacClean melewatinya dengan aman dan tetap menampilkan hasil dari area yang dapat diakses." : "macOS restricts access to certain system folders. MacClean safely skips them and shows results from accessible areas.")
                 .font(.caption)
                 .foregroundColor(Color.mcOnSurfaceVariant)
         }
@@ -501,9 +546,10 @@ struct DashboardView: View {
     }
     
     private var loadingStoragePlaceholder: some View {
-        VStack(spacing: 12) {
+        let isID = languageManager.language == .indonesian
+        return VStack(spacing: 12) {
             ProgressView()
-            Text("Membaca informasi penyimpanan macOS...")
+            Text(isID ? "Membaca informasi penyimpanan macOS..." : "Reading macOS storage telemetry...")
                 .font(.callout)
                 .foregroundColor(Color.mcOutline)
         }
@@ -518,20 +564,24 @@ struct RecommendationExplanationView: View {
     var onConfirm: () -> Void
     var onDismiss: () -> Void
     
+    @ObservedObject private var languageManager = LanguageManager.shared
+    
     var body: some View {
-        VStack(spacing: 16) {
+        let isID = languageManager.language == .indonesian
+        return VStack(spacing: 16) {
             HStack {
                 Image(systemName: "checkmark.shield.fill")
                     .font(.title)
                     .foregroundColor(Color.mcEmerald)
-                Text("Rekomendasi Pembersihan")
+                Text(isID ? "Rekomendasi Pembersihan" : "Recommended Cleanup")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(Color.mcOnSurface)
             }
             .padding(.top, 8)
             
-            Text("MacClean mengidentifikasi \(count) item dengan tingkat keamanan tinggi sebesar \(ByteFormatter.string(from: bytes)).")
+            let introText = isID ? "MacClean mengidentifikasi \(count) item dengan tingkat keamanan tinggi sebesar \(ByteFormatter.string(from: bytes))." : "MacClean identified \(count) high-safety items totaling \(ByteFormatter.string(from: bytes))."
+            Text(introText)
                 .font(.body)
                 .foregroundColor(Color.mcOnSurfaceVariant)
                 .multilineTextAlignment(.center)
@@ -541,7 +591,7 @@ struct RecommendationExplanationView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(Color.mcEmerald)
                         .font(.caption)
-                    Text("Termasuk cache yang dibuat otomatis kembali dan sisa data aplikasi.")
+                    Text(isID ? "Termasuk cache yang dibuat otomatis kembali dan sisa data aplikasi." : "Includes auto-regenerated caches and residual app data.")
                         .font(.caption)
                         .foregroundColor(Color.mcOnSurface)
                 }
@@ -549,7 +599,7 @@ struct RecommendationExplanationView: View {
                     Image(systemName: "xmark.circle.fill")
                         .foregroundColor(Color.mcOutline)
                         .font(.caption)
-                    Text("Mengecualikan runtime terlindungi, arsip penting, dan berkas pengguna.")
+                    Text(isID ? "Mengecualikan runtime terlindungi, arsip penting, dan berkas pengguna." : "Excludes protected runtimes, critical archives, and user documents.")
                         .font(.caption)
                         .foregroundColor(Color.mcOnSurface)
                 }
@@ -557,7 +607,7 @@ struct RecommendationExplanationView: View {
                     Image(systemName: "trash.fill")
                         .foregroundColor(Color.mcCoral)
                         .font(.caption)
-                    Text("Berkas dipindahkan ke macOS Trash secara aman, dapat dipulihkan kapan saja.")
+                    Text(isID ? "Berkas dipindahkan ke macOS Trash secara aman, dapat dipulihkan kapan saja." : "Files are safely moved to macOS Trash and can be restored at any time.")
                         .font(.caption)
                         .foregroundColor(Color.mcOnSurface)
                 }
@@ -567,13 +617,13 @@ struct RecommendationExplanationView: View {
             .cornerRadius(8)
             
             HStack(spacing: 16) {
-                Button("Batal") {
+                Button(isID ? "Batal" : "Cancel") {
                     onDismiss()
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
                 
-                Button("Terapkan Pilihan") {
+                Button(isID ? "Terapkan Pilihan" : "Apply Selection") {
                     onConfirm()
                 }
                 .buttonStyle(.borderedProminent)

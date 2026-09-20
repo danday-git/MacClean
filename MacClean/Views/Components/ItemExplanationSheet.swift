@@ -5,8 +5,11 @@ struct ItemExplanationSheet: View {
     let onRevealInFinder: () -> Void
     let onDismiss: () -> Void
     
+    @ObservedObject private var languageManager = LanguageManager.shared
+    
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        let isID = languageManager.language == .indonesian
+        return VStack(alignment: .leading, spacing: 18) {
             // Header
             HStack(spacing: 12) {
                 Image(systemName: item.confidenceTier.iconName)
@@ -14,11 +17,11 @@ struct ItemExplanationSheet: View {
                     .foregroundColor(item.confidenceTier.color)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.whyDialogTitle)
+                    Text(item.whyDialogTitle(for: languageManager.language))
                         .font(.headline)
                         .fontWeight(.bold)
                     
-                    Text(item.confidenceTier.badgeLabel)
+                    Text(item.confidenceTier.badgeLabel(for: languageManager.language))
                         .font(.caption)
                         .fontWeight(.semibold)
                         .padding(.horizontal, 6)
@@ -32,7 +35,7 @@ struct ItemExplanationSheet: View {
                 
                 Button(action: onDismiss) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.mcOutline)
                         .font(.title3)
                 }
                 .buttonStyle(.plain)
@@ -54,7 +57,7 @@ struct ItemExplanationSheet: View {
                 
                 Text(item.path.path)
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.mcOutline)
                     .lineLimit(1)
                     .truncationMode(.middle)
                 
@@ -63,40 +66,41 @@ struct ItemExplanationSheet: View {
                     Button(action: onRevealInFinder) {
                         HStack(spacing: 4) {
                             Image(systemName: "arrow.up.forward.app")
-                            Text("Reveal in Finder")
+                            Text(isID ? "Buka di Finder" : "Reveal in Finder")
                         }
                         .font(.caption2)
+                        .foregroundColor(Color.mcCyan)
                     }
                     .buttonStyle(.borderless)
                 }
             }
             .padding(12)
-            .background(Color(NSColor.controlBackgroundColor))
+            .background(Color.mcSurfaceHigh)
             .cornerRadius(8)
             
             // Detailed Explanations
             VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("What is this?")
+                    Text(isID ? "Apa ini?" : "What is this?")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(Color.mcOnSurface)
                     
-                    Text(item.humanExplanationText)
+                    Text(item.humanExplanationText(for: languageManager.language))
                         .font(.callout)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.mcOnSurfaceVariant)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Action & Safety Details")
+                    Text(isID ? "Detail Aksi & Keamanan" : "Action & Safety Details")
                         .font(.caption)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(Color.mcOnSurface)
                     
-                    Text(item.consequenceExplanationText)
+                    Text(item.consequenceExplanationText(for: languageManager.language))
                         .font(.callout)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(Color.mcOnSurfaceVariant)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -104,26 +108,27 @@ struct ItemExplanationSheet: View {
             // Reassurance Badge
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "shield.lefthalf.filled")
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color.mcCyan)
                     .font(.caption)
                     .padding(.top, 1)
                 
-                Text("Safety Guarantee: MacClean never permanently deletes files. Any approved cleanup moves files to the macOS Trash, where they can be reviewed or restored.")
+                Text(isID ? "Jaminan Keamanan: MacClean tidak pernah menghapus berkas secara permanen. Semua pembersihan yang disetujui hanya memindahkan berkas ke macOS Trash, yang dapat ditinjau atau dipulihkan kembali." : "Safety Guarantee: MacClean never permanently deletes files. All approved cleanups only move files to macOS Trash, which can be reviewed or restored at any time.")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(Color.mcOnSurfaceVariant)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(10)
-            .background(Color.blue.opacity(0.08))
+            .background(Color.mcCyan.opacity(0.12))
             .cornerRadius(6)
             
             // Bottom Action
             HStack {
                 Spacer()
-                Button("Done") {
+                Button(isID ? "Selesai" : "Done") {
                     onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(Color.mcCyan)
                 .controlSize(.regular)
             }
         }
