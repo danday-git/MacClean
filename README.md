@@ -19,7 +19,7 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
    - [Floating Action Dock Terpadu](#5-floating-action-dock-terpadu)
    - [Lembar Penjelasan & Konfirmasi Pembersihan](#6-lembar-penjelasan--konfirmasi-pembersihan)
 4. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
-5. [Persyaratan Sistem](#persyaratan-sistem)
+5. [Persyaratan Sistem & Prasyarat (Prerequisites)](#persyaratan-sistem--prasyarat-prerequisites)
 6. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
 7. [Lisensi](#lisensi)
 
@@ -150,11 +150,35 @@ Dock mengambang di bagian bawah layar menjadi pusat kendali seluruh siklus pembe
 
 ---
 
-## Persyaratan Sistem
+## Persyaratan Sistem & Prasyarat (Prerequisites)
 
-- **Sistem Operasi**: macOS 14.0 (Sonoma) atau versi yang lebih baru.
-- **Arsitektur**: Universal Binary (Apple Silicon M1/M2/M3/M4 dan Intel 64-bit).
-- **Hak Akses**: Izin pengguna standar macOS (tidak memerlukan akses root/sudo).
+Tergantung pada cara penggunaan yang Anda pilih, berikut adalah daftar prasyarat yang dibutuhkan:
+
+### 1. Prasyarat Umum Perangkat Keras & Sistem Operasi
+Berlaku untuk semua pengguna (baik mengunduh aplikasi jadi maupun membangun dari kode sumber):
+- **Sistem Operasi**: macOS 14.0 (Sonoma), macOS 15.0 (Sequoia), atau versi yang lebih baru.
+- **Arsitektur Perangkat Keras**: Universal Binary, mendukung penuh prosesor **Apple Silicon** (M1, M2, M3, M4, Pro, Max, Ultra) dan Mac berbasis **Intel 64-bit**.
+- **Hak Akses Sistem**: Hanya memerlukan izin pengguna standar (*standard user account*). MacClean **tidak pernah** meminta kata sandi administrator (`sudo`/root).
+- **Ruang Disk Bebas**: Minimal 10 MB untuk menampung aplikasi dan cache eksekusi sementara.
+
+### 2. Matriks Prasyarat Berdasarkan Metode Instalasi
+
+| Komponen Prasyarat | Pilihan 1: Aplikasi Siap Pakai (`.app`) | Pilihan 2: Terminal / Swift CLI | Pilihan 3: Xcode IDE |
+| :--- | :--- | :--- | :--- |
+| **Xcode IDE (~15 GB)** | **Tidak Perlu** | **Tidak Perlu** | Diperlukan (v15.0+) |
+| **Apple Command Line Tools** | **Tidak Perlu** | Diperlukan (`xcode-select --install`) | Sudah termasuk di dalam Xcode |
+| **Swift Compiler & SPM** | **Tidak Perlu** | Sudah termasuk di Command Line Tools | Sudah termasuk di dalam Xcode |
+| **Git CLI** | **Tidak Perlu** | Opsional (untuk kloning repositori) | Opsional |
+| **XcodeGen** | **Tidak Perlu** | **Tidak Perlu** | Opsional (jika edit `project.yml`) |
+
+### 3. Pengaturan Izin Privasi macOS (Opsional / Anjuran)
+- **Full Disk Access (Akses Disk Penuh)**:
+  - macOS membatasi akses aplikasi ke beberapa folder tertentu melalui sistem keamanan TCC (*Transparency, Consent, and Control*).
+  - MacClean secara otomatis menangani pembatasan ini dengan aman: folder yang dibatasi akan dilewati tanpa menyebabkan aplikasi berhenti atau *crash*.
+  - Jika Anda menginginkan analisis penyimpanan yang 100% tuntas mencakup seluruh direktori sistem dan cache pengguna secara menyeluruh, Anda dapat memberikan izin *Full Disk Access*:
+    1. Buka **System Settings** di Mac Anda.
+    2. Pilih menu **Privacy & Security** > **Full Disk Access**.
+    3. Aktifkan sakelar untuk **MacClean** (atau tanda `+` untuk menambahkan jika belum muncul).
 
 ---
 
