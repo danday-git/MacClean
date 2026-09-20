@@ -20,7 +20,7 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
    - [Lembar Penjelasan & Konfirmasi Pembersihan](#6-lembar-penjelasan--konfirmasi-pembersihan)
 4. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
 5. [Persyaratan Sistem](#persyaratan-sistem)
-6. [Kompilasi dan Menjalankan Proyek](#kompilasi-dan-menjalankan-proyek)
+6. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
 7. [Lisensi](#lisensi)
 
 ---
@@ -158,21 +158,58 @@ Dock mengambang di bagian bawah layar menjadi pusat kendali seluruh siklus pembe
 
 ---
 
-## Kompilasi dan Menjalankan Proyek
+## Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)
 
-### Prasyarat
-- Xcode 15.0 atau yang lebih baru.
-- XcodeGen (opsional, untuk membuat ulang file `.xcodeproj` dari deklarasi `project.yml`).
+Anda dapat menggunakan MacClean dengan beberapa pilihan sesuai kebutuhan:
 
-### Menjalankan Proyek
-Buka `MacClean.xcodeproj` di Xcode, pilih skema `MacClean`, dan tekan tombol **Run** (`Cmd + R`).
+### Pilihan 1: Unduh Aplikasi Siap Pakai (Pengguna Umum — Tanpa Perlu Xcode atau Kompilasi)
+Jika Anda adalah pengguna akhir yang ingin langsung memakai aplikasi tanpa memasang alat pengembang (*developer tools*):
+1. Unduh arsip **`MacClean.zip`** dari tab [Releases](https://github.com/).
+2. Ekstrak file zip tersebut untuk mendapatkan berkas **`MacClean.app`** (ukuran bundle sangat ringan, di bawah 1 MB).
+3. Pindahkan `MacClean.app` ke direktori `/Applications`.
+4. Buka aplikasi secara normal.
 
-Atau melalui Terminal:
+> [!NOTE]
+> Karena aplikasi ini bertanda tangan ad-hoc (*self-signed*), jika macOS Gatekeeper menampilkan pesan peringatan saat pertama kali dibuka, silakan klik kanan pada icon `MacClean.app` lalu pilih **Open**, atau buka **System Settings > Privacy & Security** lalu klik **Open Anyway**.
+
+---
+
+### Pilihan 2: Menggunakan Terminal & Swift CLI (Hanya Butuh Command Line Tools ~500 MB, Tanpa Xcode IDE ~15 GB)
+Jika Anda tidak menginstal aplikasi Xcode IDE yang berukuran besar (~15 GB), Anda tetap bisa mengompilasi dan menjalankan MacClean hanya bermodalkan **Apple Command Line Tools** bawaan macOS:
+1. Pasang Command Line Tools jika belum ada (ukuran hanya sekitar 500 MB):
+   ```bash
+   xcode-select --install
+   ```
+2. Jalankan aplikasi langsung dari repositori:
+   ```bash
+   ./run.sh
+   # atau
+   swift run
+   ```
+3. Jika ingin membuat berkas bundle `MacClean.app` dan paket zip sendiri:
+   ```bash
+   ./build_release.sh
+   ```
+   Skrip ini akan mengompilasi kode dengan optimasi ukuran `-Osize`, melakukan *dead-code stripping*, membungkus struktur `.app`, menerapkan tanda tangan ad-hoc, dan menghasilkan arsip `MacClean.zip`.
+
+---
+
+### Pilihan 3: Menggunakan Xcode IDE (Untuk Pengembang / Developer)
+Jika Anda memiliki Xcode 15.0 atau yang lebih baru:
+1. Buka berkas proyek `MacClean.xcodeproj` di Xcode.
+2. Pilih target dan skema `MacClean` dengan tujuan *My Mac*.
+3. Tekan pintasan **Cmd + R** untuk menjalankan aplikasi secara langsung.
+4. Jika ingin membuat ulang struktur proyek Xcode dari konfigurasi `project.yml`, Anda dapat menggunakan XcodeGen:
+   ```bash
+   xcodegen generate
+   ```
+
+#### Menjalankan Perintah Build & Unit Test via Terminal
 ```bash
-# Menjalankan build aplikasi
+# Menjalankan build debug aplikasi
 xcodebuild -scheme MacClean -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
 
-# Menjalankan rangkaian pengujian unit otomatis
+# Menjalankan seluruh suite pengujian unit otomatis (73 test)
 xcodebuild -scheme MacClean -destination 'platform=macOS' test CODE_SIGNING_ALLOWED=NO
 ```
 
