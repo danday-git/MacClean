@@ -10,6 +10,19 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 
 ---
 
+## Screenshots
+
+| Dark Mode | Light Mode |
+|-----------|------------|
+| ![Dashboard Dark Mode](docs/screenshots/01_dashboard_dark.jpg) | ![Dashboard Light Mode](docs/screenshots/02_dashboard_light.jpg) |
+
+| Scan Results with Selection |
+|-----------------------------|
+| ![Scan Results](docs/screenshots/03_scan_results.jpg) |
+
+---
+
+
 ## Table of Contents
 1. [About MacClean](#about-macclean)
 2. [Absolute Safety Architecture](#absolute-safety-architecture)

@@ -18,8 +18,10 @@ cp "$RELEASE_BIN" "$APP_DIR/Contents/MacOS/MacClean"
 echo "Stripping debug symbols..."
 strip -u -r "$APP_DIR/Contents/MacOS/MacClean"
 
-# Copy Info.plist
+# Copy Info.plist and resolve build variable substitutions
 cp "MacClean/Resources/Info.plist" "$APP_DIR/Contents/Info.plist"
+# Replace Xcode build variable $(EXECUTABLE_NAME) with the actual binary name
+plutil -replace CFBundleExecutable -string MacClean "$APP_DIR/Contents/Info.plist"
 
 # Ad-hoc code sign for macOS
 echo "Applying code signature..."
