@@ -1,5 +1,7 @@
 # MacClean
 
+**Bahasa Indonesia** | [English Documentation](README.en.md)
+
 **Storage Intelligence & Safe Cleanup Utility for macOS**
 
 MacClean adalah aplikasi utilitas analisis dan pembersihan penyimpanan disk native untuk macOS yang dirancang dengan filosofi transparansi penuh, keandalan performa, dan keamanan mutlak (*Trash-Only Architecture*).
@@ -11,17 +13,18 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
 ## Daftar Isi
 1. [Tentang MacClean](#tentang-macclean)
 2. [Prinsip Keamanan Mutlak](#prinsip-keamanan-mutlak)
-3. [Panduan Lengkap Informasi Antarmuka](#panduan-lengkap-informasi-antarmuka)
+3. [Jaminan Anti-Penghapusan Otomatis / Tanpa Izin](#jaminan-anti-penghapusan-otomatis--tanpa-izin)
+4. [Panduan Lengkap Informasi Antarmuka](#panduan-lengkap-informasi-antarmuka)
    - [Header Navigasi & Kontrol Global](#1-header-navigasi--kontrol-global)
    - [Hero Storage Visualizer](#2-hero-storage-visualizer)
    - [4 Kartu Kategori Bento](#3-4-kartu-kategori-bento)
    - [Tabel Detail Inspeksi Berkas](#4-tabel-detail-inspeksi-berkas)
    - [Floating Action Dock Terpadu](#5-floating-action-dock-terpadu)
    - [Lembar Penjelasan & Konfirmasi Pembersihan](#6-lembar-penjelasan--konfirmasi-pembersihan)
-4. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
-5. [Persyaratan Sistem & Prasyarat (Prerequisites)](#persyaratan-sistem--prasyarat-prerequisites)
-6. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
-7. [Lisensi](#lisensi)
+5. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
+6. [Persyaratan Sistem & Prasyarat (Prerequisites)](#persyaratan-sistem--prasyarat-prerequisites)
+7. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
+8. [Lisensi](#lisensi)
 
 ---
 
@@ -45,6 +48,19 @@ MacClean menjawab dua pertanyaan esensial pengguna Mac secara objektif dan aman:
    - Validasi kedua: Beberapa milidetik sebelum berkas dipindahkan ke Trash untuk mencegah *Time-of-Check to Time-of-Use* (TOCTOU) serta memastikan tidak ada penggantian berkas dengan tautan simbolik (*symlink attack*).
 3. **Pengecualian Jalur Terlindungi (Hardcoded Protected Paths)**:
    MacClean secara ketat mengecualikan direktori inti macOS, kernel snapshot, dokumen pribadi (`~/Documents`, `~/Desktop`), pustaka foto, dan database penting dari kemungkinan pembersihan.
+
+---
+
+## Jaminan Anti-Penghapusan Otomatis / Tanpa Izin
+
+MacClean secara arsitektural dirancang agar **penghapusan berkas secara tiba-tiba, otomatis, atau tanpa konfirmasi menjadi mustahil**:
+
+- **Nol Pembersihan Otomatis**: Aplikasi tidak pernah menjalankan proses latar belakang (*background daemon*), jadwal berkala (*cron/timer*), atau pembersihan diam-diam. Tidak ada berkas yang pernah dipindahkan tanpa aksi aktif pengguna.
+- **Konfirmasi Bertingkat Tiga (Triple-Gate Confirmation)**:
+  1. **Gerbang 1 (Inisiasi Pemindaian Eksplisit)**: Pemindaian disk hanya berjalan jika pengguna secara sadar menekan tombol **"Mulai Pindai Cepat"**.
+  2. **Gerbang 2 (Inspeksi & Peninjauan Terperinci)**: Setelah pemindaian selesai, tombol **"Bersihkan Sekarang"** tidak langsung menghapus apa pun. Tombol ini hanya membuka jendela modal peninjauan (*Review Cleanup View*) yang menampilkan setiap berkas, path lengkap, ukuran, dan penjelasannya. Pengguna bebas meninjau atau membatalkan pilihan berkas apa pun.
+  3. **Gerbang 3 (Dialog Konfirmasi Asli macOS)**: Menekan tombol di jendela peninjauan akan memicu dialog pop-up konfirmasi sistem (*Native macOS Alert*) yang meminta persetujuan eksplisit pengguna sekali lagi sebelum berkas dipindahkan ke Trash.
+- **Prinsip *Fail-Closed***: Jika izin akses folder dibatasi atau status berkas tidak dapat dipastikan 100% aman, MacClean otomatis melewati (*skip*) berkas tersebut tanpa menghapusnya.
 
 ---
 
