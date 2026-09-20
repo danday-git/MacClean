@@ -1,21 +1,7 @@
 import SwiftUI
 
-enum DashboardTab: String, CaseIterable, Identifiable {
-    case clean = "Smart Clean"
-    case explore = "Storage Explorer"
-    
-    var id: String { rawValue }
-    var icon: String {
-        switch self {
-        case .clean: return "sparkles"
-        case .explore: return "chart.pie.fill"
-        }
-    }
-}
-
 struct DashboardView: View {
     @StateObject private var viewModel = DashboardViewModel()
-    @State private var selectedTab: DashboardTab = .clean
     @State private var showingRecommendationModal = false
     @State private var showingDirectReview = false
     @State private var recommendedCount = 0
@@ -27,22 +13,10 @@ struct DashboardView: View {
             
             Divider()
             
-            // Responsive Tab Content with Spring Transition
-            Group {
-                switch selectedTab {
-                case .clean:
-                    cleanTabScrollView
-                        .transition(.opacity.combined(with: .scale(scale: 0.99)))
-                case .explore:
-                    exploreTabScrollView
-                        .transition(.opacity.combined(with: .scale(scale: 0.99)))
-                }
-            }
-            .animation(.spring(response: 0.3, dampingFraction: 0.85), value: selectedTab)
+            unifiedDashboardScrollView
             
             Divider()
             
-            // Contextual Bottom Action Bar
             bottomActionBar
         }
         .frame(minWidth: 600, minHeight: 460)
@@ -70,38 +44,21 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Top App Bar (Scalable with ViewThatFits)
+    // MARK: - Top App Bar (Clean macOS Toolbar)
     private var topAppBar: some View {
-        ViewThatFits(in: .horizontal) {
-            // Layout 1: Wide Layout
-            HStack(alignment: .center, spacing: 16) {
-                appTitleView
-                
-                Spacer()
-                
-                segmentedTabPicker
-                    .frame(width: 280)
-                
-                if viewModel.isScanning {
-                    scanningStatusView
-                }
-            }
+        HStack(alignment: .center, spacing: 16) {
+            appTitleView
             
-            // Layout 2: Compact / Narrow Window Layout
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    appTitleView
-                    Spacer()
-                    if viewModel.isScanning {
-                        scanningStatusView
-                    }
-                }
-                
-                segmentedTabPicker
+            Spacer()
+            
+            if viewModel.isScanning {
+                scanningStatusView
+            } else {
+                scanStorageButton
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.top, 14)
+        .padding(.horizontal, 20)
+        .padding(.top, 12)
         .padding(.bottom, 12)
         .animation(.easeInOut(duration: 0.2), value: viewModel.isScanning)
     }
@@ -109,20 +66,27 @@ struct DashboardView: View {
     private var appTitleView: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("MacClean")
-                .font(.system(size: 21, weight: .bold))
+                .font(.system(size: 20, weight: .bold))
             Text("Storage Intelligence & Safe Cleanup")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
     }
     
-    private var segmentedTabPicker: some View {
-        Picker("", selection: $selectedTab) {
-            ForEach(DashboardTab.allCases) { tab in
-                Label(tab.rawValue, systemImage: tab.icon).tag(tab)
+    private var scanStorageButton: some View {
+        Button(action: {
+            viewModel.scan()
+        }) {
+            HStack(spacing: 6) {
+                Image(systemName: "sparkle.magnifyingglass")
+                Text("Scan Storage")
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 5)
         }
-        .pickerStyle(.segmented)
+        .buttonStyle(.borderedProminent)
+        .controlSize(.regular)
+        .pointerCursor()
     }
     
     private var scanningStatusView: some View {
@@ -142,7 +106,7 @@ struct DashboardView: View {
                         .lineLimit(1)
                 }
             }
-            .frame(maxWidth: 160, alignment: .leading)
+            .frame(maxWidth: 180, alignment: .leading)
             
             Button("Cancel") {
                 viewModel.cancelScan()
@@ -152,64 +116,35 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Smart Clean Tab (Simple, Fluid & Scalable)
-    private var cleanTabScrollView: some View {
+    // MARK: - Banners
+    @ViewBuilder
+    private var commonBanners: some View {
+        if let result = viewModel.latestCleanupResult, viewModel.showCleanupSuccessBanner {
+            cleanupSuccessBanner(result: result)
+        }
+        
+        if !viewModel.scanWarnings.isEmpty {
+            scanWarningBanner
+        }
+    }
+    
+    // MARK: - Unified Dashboard ScrollView
+    private var unifiedDashboardScrollView: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 16) {
                 commonBanners
                 
                 if let summary = viewModel.summary {
-                    // Fluid Storage Overview Bar
+                    // 1. Storage Overview Bar (Macintosh HD, APFS, Used, Free, Cleanable)
                     StorageHeroHeaderView(
                         summary: summary,
                         reclaimableBytes: viewModel.totalPotentialReclaimable
                     )
                     
-                    // Recommended Cleanup Card or Clean State Reassurance
-                    rightColumnActionHero(summary: summary)
+                    // 2. Safe Cleanup Recommendation (1-Click Clean)
+                    cleanupRecommendationSection
                     
-                    // Category Breakdown Cards
-                    VStack(alignment: .leading, spacing: 10) {
-                        HStack {
-                            Text("Categories")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            Spacer()
-                            Button(action: {
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                                    selectedTab = .explore
-                                }
-                            }) {
-                                HStack(spacing: 4) {
-                                    Text("Open Storage Explorer")
-                                    Image(systemName: "arrow.right")
-                                }
-                                .font(.caption)
-                                .fontWeight(.medium)
-                            }
-                            .buttonStyle(.link)
-                        }
-                        
-                        bentoCategoryGrid
-                    }
-                } else {
-                    loadingStoragePlaceholder
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .frame(maxWidth: .infinity)
-        }
-    }
-    
-    // MARK: - Storage Explorer Tab
-    private var exploreTabScrollView: some View {
-        ScrollView(.vertical, showsIndicators: true) {
-            VStack(spacing: 16) {
-                commonBanners
-                
-                if let summary = viewModel.summary {
-                    // Storage Explorer (Composition & Top Space Consumers)
+                    // 3. Storage Composition & Top Space Consumers
                     if let breakdown = viewModel.storageBreakdown {
                         StorageExplorerView(
                             breakdown: breakdown,
@@ -218,26 +153,10 @@ struct DashboardView: View {
                                 viewModel.revealInFinder(url: url)
                             }
                         )
-                    } else {
-                        StorageBarView(summary: summary, viewModel: viewModel)
                     }
                     
-                    // Visual Category Filter Chips (Adaptive Grid)
-                    visualCategoryFilterRow
-                    
-                    // Search, Filter & Sort Toolbar (Responsive ViewThatFits)
-                    explorerToolbar
-                    
-                    // Category Breakdown Accordions (With LazyVStack row rendering)
-                    VStack(alignment: .leading, spacing: 10) {
-                        ForEach(CleanupCategory.allCases) { category in
-                            CategoryRowView(
-                                category: category,
-                                items: viewModel.categoryItems[category],
-                                viewModel: viewModel
-                            )
-                        }
-                    }
+                    // 4. Detailed File Inspector (Search, Filter, Categories)
+                    fileInspectorSection
                 } else {
                     loadingStoragePlaceholder
                 }
@@ -248,28 +167,9 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Common Banners
+    // MARK: - Safe Cleanup Recommendation Section
     @ViewBuilder
-    private var commonBanners: some View {
-        // Post-Cleanup Success Banner
-        if viewModel.showCleanupSuccessBanner, let result = viewModel.latestCleanupResult {
-            cleanupSuccessBanner(result: result)
-        }
-        
-        // Live Scanning Checklist & Progress
-        if viewModel.isScanning {
-            ScanningProgressCard(viewModel: viewModel)
-        }
-        
-        // Partial Scan / Permission Resilience Banner
-        if !viewModel.scanWarnings.isEmpty && !viewModel.isScanning {
-            scanWarningBanner
-        }
-    }
-    
-    // MARK: - Right Column Bento Action Hero
-    @ViewBuilder
-    private func rightColumnActionHero(summary: StorageSummary) -> some View {
+    private var cleanupRecommendationSection: some View {
         if viewModel.totalPotentialReclaimable > 0 {
             let leftoverItems = viewModel.categoryItems[.appLeftovers]?.filter { $0.isEligibleForCleanup } ?? []
             let cacheItems = viewModel.categoryItems[.caches]?.filter { $0.isEligibleForCleanup } ?? []
@@ -291,102 +191,85 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Clean State Card (Sleek High-Confidence Status)
+    // MARK: - Clean State Card
     private var cleanStateCard: some View {
-        VStack(spacing: 14) {
-            HStack(spacing: 14) {
-                ZStack {
-                    Circle()
-                        .fill(Color.green.opacity(0.15))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: "checkmark.shield.fill")
-                        .font(.system(size: 24))
-                        .foregroundColor(.green)
-                }
-                
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Mac is Clean & Optimized")
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "checkmark.shield.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(.green)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Mac is Clean & Optimized")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text("No unneeded cache files or orphaned app leftovers were detected.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Text("Verified Safe")
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Color.green.opacity(0.12))
+                .foregroundColor(.green)
+                .cornerRadius(6)
+        }
+        .padding(14)
+        .background(Color(NSColor.controlBackgroundColor))
+        .overlay(
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color.green.opacity(0.25), lineWidth: 1)
+        )
+        .cornerRadius(10)
+    }
+    
+    // MARK: - File Inspector Section (Search, Filter, Categories)
+    private var fileInspectorSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Candidate Files & Detailed Inspection")
                         .font(.headline)
-                        .foregroundColor(.primary)
-                    Text("No orphaned app leftovers or redundant cache files were detected.")
+                    Text("Inspect individual files, search by name or path, and customize selection")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
                 Spacer()
-                
-                Button(action: {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                        selectedTab = .explore
-                    }
-                }) {
-                    HStack(spacing: 4) {
-                        Text("Explore Files")
-                        Image(systemName: "arrow.right")
-                    }
-                    .font(.caption)
-                    .fontWeight(.medium)
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.small)
             }
             
-            Divider()
+            // Visual Category Filter Chips
+            visualCategoryFilterRow
             
-            HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: "sparkles")
-                        .foregroundColor(.blue)
-                        .font(.caption2)
-                    Text("Ready for next scan")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                HStack(spacing: 6) {
-                    Image(systemName: "lock.shield.fill")
-                        .foregroundColor(.green)
-                        .font(.caption2)
-                    Text("100% Native Trash Safety")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+            // Search, Filter & Sort Toolbar
+            explorerToolbar
+            
+            // Category Breakdown Accordions (With LazyVStack row rendering)
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(CleanupCategory.allCases) { category in
+                    CategoryRowView(
+                        category: category,
+                        items: viewModel.categoryItems[category],
+                        viewModel: viewModel
+                    )
                 }
             }
         }
-        .padding(18)
-        .background(Color(NSColor.controlBackgroundColor))
+        .padding(14)
+        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 10)
+                .stroke(Color(NSColor.separatorColor).opacity(0.35), lineWidth: 1)
         )
-        .cornerRadius(12)
-    }
-    
-    // MARK: - Bento Category Grid (Fluid Adaptive Cards)
-    private var bentoCategoryGrid: some View {
-        LazyVGrid(
-            columns: [GridItem(.adaptive(minimum: 150, maximum: .infinity), spacing: 10)],
-            spacing: 10
-        ) {
-            ForEach(CleanupCategory.allCases) { category in
-                BentoCategoryCard(
-                    category: category,
-                    items: viewModel.categoryItems[category] ?? [],
-                    totalEligibleOverall: viewModel.totalPotentialReclaimable,
-                    onExplore: {
-                        viewModel.selectedCategoryFilter = category
-                        if !viewModel.expandedCategories.contains(category) {
-                            viewModel.expandedCategories.insert(category)
-                        }
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                            selectedTab = .explore
-                        }
-                    }
-                )
-            }
-        }
+        .cornerRadius(10)
     }
     
     // MARK: - Visual Category Filter Row (Storage Explorer - Adaptive Grid)
@@ -527,41 +410,33 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Contextual Bottom Bar (Responsive ViewThatFits)
+    // MARK: - Unified Bottom Action Bar
     private var bottomActionBar: some View {
         VStack(spacing: 0) {
-            if selectedTab == .explore {
-                // Selection Toolbar in Explore tab for custom manual review
-                SelectionToolbarView(
-                    viewModel: viewModel,
-                    selection: viewModel.selection,
-                    onSelectRecommended: {
-                        let summary = viewModel.selection.recommendedSummary(from: viewModel.categoryItems)
-                        recommendedCount = summary.count
-                        recommendedBytes = summary.totalBytes
-                        showingRecommendationModal = true
-                    }
-                )
-                Divider()
-            }
-            
-            ViewThatFits(in: .horizontal) {
-                // Wide Layout
-                HStack {
-                    safetyPolicyText
-                    Spacer()
-                    scanStorageButton
+            SelectionToolbarView(
+                viewModel: viewModel,
+                selection: viewModel.selection,
+                onSelectRecommended: {
+                    let summary = viewModel.selection.recommendedSummary(from: viewModel.categoryItems)
+                    recommendedCount = summary.count
+                    recommendedBytes = summary.totalBytes
+                    showingRecommendationModal = true
                 }
-                
-                // Compact Layout
-                VStack(spacing: 8) {
-                    scanStorageButton
-                        .frame(maxWidth: .infinity)
-                    safetyPolicyText
+            )
+            
+            Divider()
+            
+            HStack {
+                safetyPolicyText
+                Spacer()
+                if let last = viewModel.lastScan {
+                    Text("Last scan: \(last.formattedDate)")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(.horizontal, 22)
-            .padding(.vertical, 12)
+            .padding(.vertical, 8)
             .background(Color(NSColor.windowBackgroundColor))
         }
     }
@@ -575,28 +450,6 @@ struct DashboardView: View {
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
-    }
-    
-    private var scanStorageButton: some View {
-        Button(action: {
-            viewModel.scan()
-        }) {
-            HStack(spacing: 6) {
-                if viewModel.isScanning {
-                    ProgressView()
-                        .scaleEffect(0.6)
-                    Text("Scanning Mac...")
-                } else {
-                    Image(systemName: "magnifyingglass")
-                    Text("Scan Storage")
-                }
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 6)
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .disabled(viewModel.isScanning)
     }
     
     // MARK: - Helpers & Banners

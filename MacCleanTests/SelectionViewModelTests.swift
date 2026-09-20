@@ -40,4 +40,35 @@ final class SelectionViewModelTests: XCTestCase {
         XCTAssertTrue(vm.selectedItems.isEmpty)
         XCTAssertEqual(vm.selectedSize(from: allItems), 0)
     }
+    
+    func testIsAllSelectedAndToggleSelectAll() throws {
+        let vm = CleanupSelectionViewModel()
+        let item1 = ScanResultItem(name: "1", path: URL(fileURLWithPath: "/tmp/1"), size: 100, category: .caches, status: .knownCache, explanation: "")
+        let item2 = ScanResultItem(name: "2", path: URL(fileURLWithPath: "/tmp/2"), size: 200, category: .caches, status: .knownCache, explanation: "")
+        let items = [item1, item2]
+        
+        XCTAssertFalse(vm.isAllSelected(in: items))
+        
+        vm.toggleSelectAll(in: items)
+        XCTAssertTrue(vm.isAllSelected(in: items))
+        XCTAssertTrue(vm.isSelected(item1))
+        XCTAssertTrue(vm.isSelected(item2))
+        
+        vm.toggleSelectAll(in: items)
+        XCTAssertFalse(vm.isAllSelected(in: items))
+        XCTAssertFalse(vm.isSelected(item1))
+        XCTAssertFalse(vm.isSelected(item2))
+    }
+    
+    func testIsAllRecommendedSelected() throws {
+        let vm = CleanupSelectionViewModel()
+        let item1 = ScanResultItem(name: "1", path: URL(fileURLWithPath: "/tmp/1"), size: 100, category: .caches, status: .knownCache, explanation: "")
+        let item2 = ScanResultItem(name: "2", path: URL(fileURLWithPath: "/tmp/2"), size: 200, category: .caches, status: .knownCache, explanation: "")
+        let categoryItems: [CleanupCategory: [ScanResultItem]] = [.caches: [item1, item2]]
+        
+        XCTAssertFalse(vm.isAllRecommendedSelected(from: categoryItems))
+        
+        vm.selectRecommended(in: categoryItems)
+        XCTAssertTrue(vm.isAllRecommendedSelected(from: categoryItems))
+    }
 }

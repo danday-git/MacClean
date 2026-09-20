@@ -26,4 +26,8 @@ struct ScanHistoryEntry: Identifiable, Codable, Equatable, Sendable {
         self.itemCount = itemCount
         self.scannerWarningsCount = scannerWarningsCount
     }
+    
+    var formattedDate: String {
+        timestamp.formatted(date: .abbreviated, time: .shortened)
+    }
 }
