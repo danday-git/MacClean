@@ -152,45 +152,55 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Smart Clean Tab
+    // MARK: - Smart Clean Tab (Modern 2-Column Bento Dashboard)
     private var cleanTabScrollView: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 16) {
                 commonBanners
                 
                 if let summary = viewModel.summary {
-                    // Storage Overview Cards (Responsive Side-by-Side or Stacked)
-                    storageOverviewCards(summary: summary)
-                    
-                    // Recommended Cleanup Card (3 Human Buckets)
-                    if viewModel.totalPotentialReclaimable > 0 {
-                        let leftoverItems = viewModel.categoryItems[.appLeftovers]?.filter { $0.isEligibleForCleanup } ?? []
-                        let cacheItems = viewModel.categoryItems[.caches]?.filter { $0.isEligibleForCleanup } ?? []
-                        let devItems = viewModel.categoryItems[.developerData]?.filter { $0.isEligibleForCleanup } ?? []
-                        
-                        RecommendedCleanupCard(
-                            leftoverBytes: leftoverItems.reduce(0) { $0 + $1.size },
-                            cacheBytes: cacheItems.reduce(0) { $0 + $1.size },
-                            devCacheBytes: devItems.reduce(0) { $0 + $1.size },
-                            totalReclaimableBytes: viewModel.totalPotentialReclaimable,
-                            onReviewRecommended: {
-                                viewModel.selection.selectRecommended(in: viewModel.categoryItems)
-                                viewModel.recalculateReclaimable()
-                                showingDirectReview = true
+                    ViewThatFits(in: .horizontal) {
+                        // Wide Layout: 2-Column Side-by-Side Bento Dashboard
+                        HStack(alignment: .top, spacing: 16) {
+                            StorageRingGaugeView(
+                                summary: summary,
+                                reclaimableBytes: viewModel.totalPotentialReclaimable,
+                                isScanning: viewModel.isScanning,
+                                scanningStatus: viewModel.currentScanningStatus,
+                                scanProgressLog: viewModel.scanProgressLog,
+                                onScan: { viewModel.scan() },
+                                onCancelScan: { viewModel.cancelScan() }
+                            )
+                            .frame(width: 320)
+                            
+                            VStack(spacing: 16) {
+                                rightColumnActionHero(summary: summary)
+                                bentoCategoryGrid
                             }
-                        )
-                    } else if !viewModel.isScanning {
-                        cleanStateCard
+                            .frame(maxWidth: .infinity)
+                        }
+                        
+                        // Compact Layout: Vertically stacked for narrow windows
+                        VStack(spacing: 16) {
+                            StorageRingGaugeView(
+                                summary: summary,
+                                reclaimableBytes: viewModel.totalPotentialReclaimable,
+                                isScanning: viewModel.isScanning,
+                                scanningStatus: viewModel.currentScanningStatus,
+                                scanProgressLog: viewModel.scanProgressLog,
+                                onScan: { viewModel.scan() },
+                                onCancelScan: { viewModel.cancelScan() }
+                            )
+                            
+                            rightColumnActionHero(summary: summary)
+                            bentoCategoryGrid
+                        }
                     }
-                    
-                    // Deep Dive Explorer Shortcut Card (Interactive Adaptive Grid)
-                    categoryGlanceCard
                 } else {
                     loadingStoragePlaceholder
                 }
             }
-            .frame(maxWidth: 1040)
-            .padding(.horizontal, 22)
+            .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
         }
@@ -236,8 +246,7 @@ struct DashboardView: View {
                     loadingStoragePlaceholder
                 }
             }
-            .frame(maxWidth: 1040)
-            .padding(.horizontal, 22)
+            .padding(.horizontal, 20)
             .padding(.vertical, 16)
             .frame(maxWidth: .infinity)
         }
@@ -262,156 +271,118 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Storage Overview Cards (Responsive ViewThatFits)
-    private func storageOverviewCards(summary: StorageSummary) -> some View {
-        ViewThatFits(in: .horizontal) {
-            // Wide: Side-by-side
-            HStack(spacing: 14) {
-                storageUsedCard(summary: summary)
-                reclaimableCard
-            }
+    // MARK: - Right Column Bento Action Hero
+    @ViewBuilder
+    private func rightColumnActionHero(summary: StorageSummary) -> some View {
+        if viewModel.totalPotentialReclaimable > 0 {
+            let leftoverItems = viewModel.categoryItems[.appLeftovers]?.filter { $0.isEligibleForCleanup } ?? []
+            let cacheItems = viewModel.categoryItems[.caches]?.filter { $0.isEligibleForCleanup } ?? []
+            let devItems = viewModel.categoryItems[.developerData]?.filter { $0.isEligibleForCleanup } ?? []
             
-            // Compact: Stacked
-            VStack(spacing: 10) {
-                storageUsedCard(summary: summary)
-                reclaimableCard
-            }
+            RecommendedCleanupCard(
+                leftoverBytes: leftoverItems.reduce(0) { $0 + $1.size },
+                cacheBytes: cacheItems.reduce(0) { $0 + $1.size },
+                devCacheBytes: devItems.reduce(0) { $0 + $1.size },
+                totalReclaimableBytes: viewModel.totalPotentialReclaimable,
+                onReviewRecommended: {
+                    viewModel.selection.selectRecommended(in: viewModel.categoryItems)
+                    viewModel.recalculateReclaimable()
+                    showingDirectReview = true
+                }
+            )
+        } else if !viewModel.isScanning {
+            cleanStateCard
         }
     }
     
-    private func storageUsedCard(summary: StorageSummary) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Image(systemName: "internaldrive.fill")
-                    .foregroundColor(.blue)
-                Text("Storage Used")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("Diagnostics")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-            
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(viewModel.sizeString(for: summary.usedSpace))
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.primary)
-                Text("of \(viewModel.sizeString(for: summary.totalSpace))")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Text("\(viewModel.sizeString(for: summary.freeSpace)) available space")
-                .font(.caption2)
-                .foregroundColor(.green)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
-        .interactiveCard(scale: 1.008, hoverBackground: Color(NSColor.controlBackgroundColor).opacity(0.8), hoverBorder: Color.blue.opacity(0.25), pointer: false)
-    }
-    
-    private var reclaimableCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Image(systemName: "checkmark.shield.fill")
-                    .foregroundColor(.green)
-                Text("Safe Cleanup Recommendation")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.secondary)
-                Spacer()
-                Text("Verified")
-                    .font(.caption2)
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 1)
-                    .background(Color.green.opacity(0.12))
-                    .foregroundColor(.green)
-                    .cornerRadius(4)
-            }
-            
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text(viewModel.sizeString(for: viewModel.totalPotentialReclaimable))
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.orange)
-                Text("eligible")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            Text("Regenerable caches & verified leftovers only")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
-        .interactiveCard(scale: 1.008, hoverBackground: Color(NSColor.controlBackgroundColor).opacity(0.8), hoverBorder: Color.green.opacity(0.25), pointer: false)
-    }
-    
-    // MARK: - Clean State Card
+    // MARK: - Clean State Card (Sleek High-Confidence Status)
     private var cleanStateCard: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 34))
-                .foregroundColor(.green)
-            
-            Text("Your Mac is Clean & Optimized")
-                .font(.headline)
-            
-            Text("No unneeded cache files or orphaned app leftovers were detected.")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding(24)
-        .frame(maxWidth: .infinity)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(10)
-    }
-    
-    // MARK: - Category Glance & Explorer Shortcut (Adaptive Grid & Interactive Cards)
-    private var categoryGlanceCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Category Breakdown")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Text("Click any category to inspect candidate files in Storage Explorer")
-                        .font(.caption2)
+        VStack(spacing: 14) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(Color.green.opacity(0.15))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: "checkmark.shield.fill")
+                        .font(.system(size: 24))
+                        .foregroundColor(.green)
+                }
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Mac is Clean & Optimized")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    Text("No orphaned app leftovers or redundant cache files were detected.")
+                        .font(.caption)
                         .foregroundColor(.secondary)
                 }
+                
                 Spacer()
+                
                 Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
                         selectedTab = .explore
                     }
                 }) {
                     HStack(spacing: 4) {
-                        Text("Open Storage Explorer")
-                            .font(.caption)
-                            .fontWeight(.medium)
+                        Text("Explore Files")
                         Image(systemName: "arrow.right")
-                            .font(.caption2)
                     }
+                    .font(.caption)
+                    .fontWeight(.medium)
                 }
-                .buttonStyle(.link)
+                .buttonStyle(.bordered)
+                .controlSize(.small)
             }
             
-            // Adaptive Grid: Expands from 2 to 4 columns automatically based on window width
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 180, maximum: .infinity), spacing: 12)], spacing: 12) {
-                ForEach(CleanupCategory.allCases) { category in
-                    let catItems = viewModel.categoryItems[category] ?? []
-                    let displayBytes = category == .largeFiles
-                        ? catItems.reduce(0) { $0 + $1.size }
-                        : catItems.filter { $0.isEligibleForCleanup }.reduce(0) { $0 + $1.size }
-                    
-                    Button(action: {
+            Divider()
+            
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .foregroundColor(.blue)
+                        .font(.caption2)
+                    Text("Ready for next scan")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                HStack(spacing: 6) {
+                    Image(systemName: "lock.shield.fill")
+                        .foregroundColor(.green)
+                        .font(.caption2)
+                    Text("100% Native Trash Safety")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding(18)
+        .background(Color(NSColor.controlBackgroundColor))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.green.opacity(0.3), lineWidth: 1)
+        )
+        .cornerRadius(12)
+    }
+    
+    // MARK: - Bento Category Grid (2x2 Dynamic Cards)
+    private var bentoCategoryGrid: some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 12),
+                GridItem(.flexible(), spacing: 12)
+            ],
+            spacing: 12
+        ) {
+            ForEach(CleanupCategory.allCases) { category in
+                BentoCategoryCard(
+                    category: category,
+                    items: viewModel.categoryItems[category] ?? [],
+                    totalEligibleOverall: viewModel.totalPotentialReclaimable,
+                    onExplore: {
                         viewModel.selectedCategoryFilter = category
                         if !viewModel.expandedCategories.contains(category) {
                             viewModel.expandedCategories.insert(category)
@@ -419,59 +390,10 @@ struct DashboardView: View {
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
                             selectedTab = .explore
                         }
-                    }) {
-                        HStack(spacing: 10) {
-                            Image(systemName: iconForCategory(category))
-                                .font(.title3)
-                                .foregroundColor(colorForCategory(category))
-                                .frame(width: 24)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(category.rawValue)
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.primary)
-                                
-                                HStack(spacing: 4) {
-                                    Text(ByteFormatter.string(from: displayBytes))
-                                        .font(.system(size: 13, weight: .bold, design: .monospaced))
-                                        .foregroundColor(.secondary)
-                                    
-                                    if category == .largeFiles {
-                                        Text("found")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    } else {
-                                        Text("eligible")
-                                            .font(.caption2)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption2)
-                                .foregroundColor(.secondary.opacity(0.6))
-                        }
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(8)
                     }
-                    .buttonStyle(.plain)
-                    .interactiveCard(
-                        scale: 1.02,
-                        hoverBackground: colorForCategory(category).opacity(0.08),
-                        hoverBorder: colorForCategory(category).opacity(0.35),
-                        cornerRadius: 8,
-                        pointer: true
-                    )
-                }
+                )
             }
         }
-        .padding(16)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
-        .cornerRadius(10)
     }
     
     // MARK: - Visual Category Filter Row (Storage Explorer - Adaptive Grid)

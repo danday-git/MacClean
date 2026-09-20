@@ -93,12 +93,12 @@ struct RecommendedCleanupCard: View {
             }
         }
         .padding(16)
-        .background(Color(NSColor.controlBackgroundColor).opacity(0.85))
+        .background(Color(NSColor.controlBackgroundColor))
         .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.green.opacity(0.25), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.orange.opacity(0.35), lineWidth: 1)
         )
-        .cornerRadius(10)
+        .cornerRadius(12)
     }
     
     private func bucketRow(icon: String, color: Color, title: String, subtitle: String, bytes: Int64) -> some View {
