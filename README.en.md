@@ -26,6 +26,24 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 
 ---
 
+## Quick Start
+
+Get started in 3 steps:
+
+**Step 1 — Download and open the app**
+Download `MacClean.zip` from the [Releases](https://github.com/danday-git/MacClean/releases) page, unzip it, and open `MacClean.app`.
+
+> If macOS shows an "unidentified developer" warning, right-click the app icon and choose **Open**.
+
+**Step 2 — Scan your storage**
+Click the **"Start Quick Scan"** button at the bottom of the app. MacClean will analyze your disk automatically (usually takes 10-30 seconds).
+
+**Step 3 — Review and clean**
+After the scan, check the items you want to remove and press **"Clean Now"**. You will see a full list of everything before anything is moved. Confirm once more in the dialog that appears.
+
+> All files are only moved to the **macOS Trash** — nothing is permanently deleted. You can restore any file at any time from Finder.
+
+---
 
 ## Table of Contents
 1. [About MacClean](#about-macclean)
@@ -197,7 +215,7 @@ Applies to all users:
 
 ### Option 1: Pre-Built Application (General Users — No Xcode or Compilation Required)
 For users who want to use the application directly without installing developer tools:
-1. Download **`MacClean.zip`** from the [Releases](https://github.com/) page.
+1. Download **`MacClean.zip`** from the [Releases](https://github.com/danday-git/MacClean/releases) page.
 2. Unzip the file to obtain **`MacClean.app`** (lightweight standalone bundle, under 1 MB).
 3. Drag `MacClean.app` into your `/Applications` folder.
 4. Launch the application normally.

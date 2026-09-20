@@ -26,6 +26,24 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
 
 ---
 
+## Cara Cepat Mulai (Quick Start)
+
+Cukup 3 langkah untuk membersihkan penyimpanan Mac Anda:
+
+**Langkah 1 — Unduh dan buka aplikasi**
+Unduh `MacClean.zip` dari halaman [Releases](https://github.com/danday-git/MacClean/releases), ekstrak, lalu buka `MacClean.app`.
+
+> Jika muncul peringatan "developer tidak dikenal", klik kanan icon aplikasi lalu pilih **Open**.
+
+**Langkah 2 — Pindai penyimpanan**
+Tekan tombol **"Mulai Pindai Cepat"** di bagian bawah aplikasi. MacClean akan menganalisis disk Anda secara otomatis (biasanya selesai dalam 10-30 detik).
+
+**Langkah 3 — Tinjau dan bersihkan**
+Setelah pindai selesai, centang item yang ingin dibersihkan lalu tekan **"Bersihkan Sekarang"**. Anda akan melihat daftar lengkap sebelum ada yang dipindahkan. Konfirmasi sekali lagi pada dialog yang muncul.
+
+> Semua file hanya dipindahkan ke **Tong Sampah macOS** — tidak ada yang dihapus permanen. Anda bisa memulihkannya kapan saja lewat Finder.
+
+---
 
 ## Daftar Isi
 1. [Tentang MacClean](#tentang-macclean)
@@ -221,7 +239,7 @@ Anda dapat menggunakan MacClean dengan beberapa pilihan sesuai kebutuhan:
 
 ### Pilihan 1: Unduh Aplikasi Siap Pakai (Pengguna Umum — Tanpa Perlu Xcode atau Kompilasi)
 Jika Anda adalah pengguna akhir yang ingin langsung memakai aplikasi tanpa memasang alat pengembang (*developer tools*):
-1. Unduh arsip **`MacClean.zip`** dari tab [Releases](https://github.com/).
+1. Unduh arsip **`MacClean.zip`** dari tab [Releases](https://github.com/danday-git/MacClean/releases).
 2. Ekstrak file zip tersebut untuk mendapatkan berkas **`MacClean.app`** (ukuran bundle sangat ringan, di bawah 1 MB).
 3. Pindahkan `MacClean.app` ke direktori `/Applications`.
 4. Buka aplikasi secara normal.
