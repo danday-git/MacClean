@@ -45,7 +45,7 @@ struct DashboardView: View {
             // Contextual Bottom Action Bar
             bottomActionBar
         }
-        .frame(minWidth: 640, minHeight: 520)
+        .frame(minWidth: 600, minHeight: 460)
         .sheet(isPresented: $showingRecommendationModal) {
             RecommendationExplanationView(
                 count: recommendedCount,
@@ -152,49 +152,45 @@ struct DashboardView: View {
         }
     }
     
-    // MARK: - Smart Clean Tab (Modern 2-Column Bento Dashboard)
+    // MARK: - Smart Clean Tab (Simple, Fluid & Scalable)
     private var cleanTabScrollView: some View {
         ScrollView(.vertical, showsIndicators: true) {
             VStack(spacing: 16) {
                 commonBanners
                 
                 if let summary = viewModel.summary {
-                    ViewThatFits(in: .horizontal) {
-                        // Wide Layout: 2-Column Side-by-Side Bento Dashboard
-                        HStack(alignment: .top, spacing: 16) {
-                            StorageRingGaugeView(
-                                summary: summary,
-                                reclaimableBytes: viewModel.totalPotentialReclaimable,
-                                isScanning: viewModel.isScanning,
-                                scanningStatus: viewModel.currentScanningStatus,
-                                scanProgressLog: viewModel.scanProgressLog,
-                                onScan: { viewModel.scan() },
-                                onCancelScan: { viewModel.cancelScan() }
-                            )
-                            .frame(width: 320)
-                            
-                            VStack(spacing: 16) {
-                                rightColumnActionHero(summary: summary)
-                                bentoCategoryGrid
+                    // Fluid Storage Overview Bar
+                    StorageHeroHeaderView(
+                        summary: summary,
+                        reclaimableBytes: viewModel.totalPotentialReclaimable
+                    )
+                    
+                    // Recommended Cleanup Card or Clean State Reassurance
+                    rightColumnActionHero(summary: summary)
+                    
+                    // Category Breakdown Cards
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Text("Categories")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Spacer()
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+                                    selectedTab = .explore
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Text("Open Storage Explorer")
+                                    Image(systemName: "arrow.right")
+                                }
+                                .font(.caption)
+                                .fontWeight(.medium)
                             }
-                            .frame(maxWidth: .infinity)
+                            .buttonStyle(.link)
                         }
                         
-                        // Compact Layout: Vertically stacked for narrow windows
-                        VStack(spacing: 16) {
-                            StorageRingGaugeView(
-                                summary: summary,
-                                reclaimableBytes: viewModel.totalPotentialReclaimable,
-                                isScanning: viewModel.isScanning,
-                                scanningStatus: viewModel.currentScanningStatus,
-                                scanProgressLog: viewModel.scanProgressLog,
-                                onScan: { viewModel.scan() },
-                                onCancelScan: { viewModel.cancelScan() }
-                            )
-                            
-                            rightColumnActionHero(summary: summary)
-                            bentoCategoryGrid
-                        }
+                        bentoCategoryGrid
                     }
                 } else {
                     loadingStoragePlaceholder
@@ -368,14 +364,11 @@ struct DashboardView: View {
         .cornerRadius(12)
     }
     
-    // MARK: - Bento Category Grid (2x2 Dynamic Cards)
+    // MARK: - Bento Category Grid (Fluid Adaptive Cards)
     private var bentoCategoryGrid: some View {
         LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ],
-            spacing: 12
+            columns: [GridItem(.adaptive(minimum: 150, maximum: .infinity), spacing: 10)],
+            spacing: 10
         ) {
             ForEach(CleanupCategory.allCases) { category in
                 BentoCategoryCard(

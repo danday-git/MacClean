@@ -18,7 +18,8 @@ struct MacCleanApp: App {
     var body: some Scene {
         WindowGroup {
             DashboardView()
-                .frame(minWidth: 640, minHeight: 520)
+                .frame(minWidth: 600, minHeight: 460)
         }
+        .defaultSize(width: 760, height: 540)
     }
 }
