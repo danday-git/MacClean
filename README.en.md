@@ -12,9 +12,17 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 
 ## Screenshots
 
-| Light Mode (Pre-Scan) | After Scan — Items Found & Selected |
-|----------------------|-------------------------------------|
-| ![Dashboard Light Mode](docs/screenshots/Light.png) | ![Scan Results with Selection](docs/screenshots/Result.png) |
+**Pre-Scan — Storage Overview**
+
+| Dark Mode | Light Mode |
+|-----------|------------|
+| ![Dark Mode Pre-Scan](docs/screenshots/Dark.png) | ![Light Mode Pre-Scan](docs/screenshots/Light.png) |
+
+**After Scan — Items Found & Ready to Clean**
+
+| Dark Mode | Light Mode |
+|-----------|------------|
+| ![Dark Mode Scan Results](docs/screenshots/Result-Dark.png) | ![Light Mode Scan Results](docs/screenshots/Result.png) |
 
 ---
 

@@ -12,9 +12,17 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
 
 ## Tangkapan Layar
 
-| Mode Terang (Sebelum Pindai) | Setelah Pindai — Item Ditemukan & Dipilih |
-|-----------------------------|-------------------------------------------|
-| ![Dashboard Mode Terang](docs/screenshots/Light.png) | ![Hasil Pindai dengan Seleksi](docs/screenshots/Result.png) |
+**Sebelum Pindai — Ringkasan Penyimpanan**
+
+| Mode Gelap | Mode Terang |
+|------------|-------------|
+| ![Mode Gelap Sebelum Pindai](docs/screenshots/Dark.png) | ![Mode Terang Sebelum Pindai](docs/screenshots/Light.png) |
+
+**Setelah Pindai — Item Ditemukan & Siap Dibersihkan**
+
+| Mode Gelap | Mode Terang |
+|------------|-------------|
+| ![Hasil Pindai Mode Gelap](docs/screenshots/Result-Dark.png) | ![Hasil Pindai Mode Terang](docs/screenshots/Result.png) |
 
 ---
 
