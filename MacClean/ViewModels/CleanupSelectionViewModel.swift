@@ -37,6 +37,27 @@ final class CleanupSelectionViewModel: ObservableObject {
         }
     }
     
+    func isAllSelected(in items: [ScanResultItem]) -> Bool {
+        let eligible = items.filter { isRecommended($0) }
+        guard !eligible.isEmpty else { return false }
+        return eligible.allSatisfy { selectedItems.contains($0.id) }
+    }
+    
+    func isAllRecommendedSelected(from categoryItems: [CleanupCategory: [ScanResultItem]]) -> Bool {
+        let allItems = categoryItems.values.flatMap { $0 }
+        let eligible = allItems.filter { isRecommended($0) }
+        guard !eligible.isEmpty else { return false }
+        return eligible.allSatisfy { selectedItems.contains($0.id) }
+    }
+    
+    func toggleSelectAll(in items: [ScanResultItem]) {
+        if isAllSelected(in: items) {
+            deselectAll(in: items)
+        } else {
+            selectAll(in: items)
+        }
+    }
+    
     func clearSelection() {
         selectedItems.removeAll()
     }

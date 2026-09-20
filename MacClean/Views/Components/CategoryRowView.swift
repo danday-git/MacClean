@@ -145,6 +145,40 @@ struct CategoryRowView: View {
                     }
                     
                     if !displayItems.isEmpty {
+                        if category != .largeFiles {
+                            let eligibleItems = displayItems.filter { $0.isEligibleForCleanup }
+                            if !eligibleItems.isEmpty {
+                                let isAllCatSelected = viewModel.selection.isAllSelected(in: eligibleItems)
+                                HStack {
+                                    Text("\(eligibleItems.count) eligible items · \(ByteFormatter.string(from: eligibleSize))")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.15)) {
+                                            viewModel.selection.toggleSelectAll(in: eligibleItems)
+                                            viewModel.recalculateReclaimable()
+                                        }
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: isAllCatSelected ? "xmark.circle" : "checkmark.circle")
+                                            Text(isAllCatSelected ? "Deselect All in \(category.rawValue)" : "Select All in \(category.rawValue)")
+                                        }
+                                        .font(.caption2)
+                                        .fontWeight(.medium)
+                                    }
+                                    .buttonStyle(.borderless)
+                                    .foregroundColor(.blue)
+                                }
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color(NSColor.windowBackgroundColor).opacity(0.5))
+                                .cornerRadius(6)
+                            }
+                        }
+                        
                         ForEach(displayItems) { item in
                             ItemDetailRow(item: item, viewModel: viewModel, selection: viewModel.selection)
                         }

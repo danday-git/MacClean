@@ -735,6 +735,18 @@ struct SelectionToolbarView: View {
     var onSelectRecommended: () -> Void
     @State private var showingReview = false
     
+    private var totalEligibleBytes: Int64 {
+        viewModel.totalPotentialReclaimable
+    }
+    
+    private var selectedBytes: Int64 {
+        selection.selectedSize(from: viewModel.categoryItems)
+    }
+    
+    private var isAllSelected: Bool {
+        selection.isAllRecommendedSelected(from: viewModel.categoryItems)
+    }
+    
     var body: some View {
         ViewThatFits(in: .horizontal) {
             // Wide Layout
@@ -762,24 +774,30 @@ struct SelectionToolbarView: View {
     private var selectionInfoView: some View {
         if selection.selectedItems.isEmpty {
             HStack(spacing: 6) {
-                Text("No items selected")
+                Image(systemName: "circle")
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                Text("0 items selected")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 Text("·")
                     .foregroundColor(.secondary)
-                Text("Potential reclaimable: \(ByteFormatter.string(from: viewModel.totalPotentialReclaimable))")
+                Text("\(ByteFormatter.string(from: totalEligibleBytes)) available to clean")
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
             }
         } else {
             HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(.orange)
+                    .font(.caption)
                 Text("\(selection.selectedItems.count) items selected")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 Text("·")
                     .foregroundColor(.secondary)
-                Text("\(ByteFormatter.string(from: selection.selectedSize(from: viewModel.categoryItems))) reclaimable")
+                Text("\(ByteFormatter.string(from: selectedBytes)) selected to clean")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundColor(.orange)
@@ -789,39 +807,65 @@ struct SelectionToolbarView: View {
     
     @ViewBuilder
     private var actionButtonsView: some View {
-        if selection.selectedItems.isEmpty {
-            Button(action: onSelectRecommended) {
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.shield.fill")
-                    Text(viewModel.totalPotentialReclaimable > 0 ? "Review \(ByteFormatter.string(from: viewModel.totalPotentialReclaimable))" : "Review Cleanup")
-                        .fontWeight(.semibold)
+        HStack(spacing: 12) {
+            // 1. Select All / Deselect All Controls
+            if selection.selectedItems.isEmpty {
+                Button(action: {
+                    selection.selectRecommended(in: viewModel.categoryItems)
+                    viewModel.recalculateReclaimable()
+                }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "checkmark.circle")
+                        Text(totalEligibleBytes > 0 ? "Select All (\(ByteFormatter.string(from: totalEligibleBytes)))" : "Select All")
+                            .fontWeight(.medium)
+                    }
                 }
-            }
-            .accessibilityLabel(viewModel.totalPotentialReclaimable > 0 ? "Review \(ByteFormatter.string(from: viewModel.totalPotentialReclaimable)) of eligible cleanup items" : "Review Cleanup")
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
-            .disabled(viewModel.totalPotentialReclaimable == 0)
-        } else {
-            HStack(spacing: 12) {
-                Button("Clear Selection") {
+                .buttonStyle(.bordered)
+                .disabled(totalEligibleBytes == 0)
+                .help("Select all eligible cache and leftover items")
+            } else {
+                Button("Deselect All") {
                     selection.clearSelection()
-                    viewModel.recalculateRecalculateReclaimable()
+                    viewModel.recalculateReclaimable()
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.blue)
                 
-                Button("Review \(ByteFormatter.string(from: selection.selectedSize(from: viewModel.categoryItems)))") {
-                    showingReview = true
+                if !isAllSelected && totalEligibleBytes > selectedBytes {
+                    Button("Select All") {
+                        selection.selectRecommended(in: viewModel.categoryItems)
+                        viewModel.recalculateReclaimable()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.blue)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.orange)
-                .sheet(isPresented: $showingReview) {
-                    ReviewCleanupView(
-                        viewModel: viewModel,
-                        selection: selection,
-                        isPresented: $showingReview
-                    )
+            }
+            
+            // 2. Review & Clean Action Button
+            Button(action: {
+                showingReview = true
+            }) {
+                HStack(spacing: 5) {
+                    Image(systemName: "checkmark.shield.fill")
+                    if selection.selectedItems.isEmpty {
+                        Text("Review & Clean")
+                            .fontWeight(.semibold)
+                    } else {
+                        Text("Review & Clean (\(ByteFormatter.string(from: selectedBytes)))")
+                            .fontWeight(.semibold)
+                    }
                 }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            .disabled(selection.selectedItems.isEmpty)
+            .help(selection.selectedItems.isEmpty ? "Select items first to review and clean" : "Review selected items before moving them to Trash")
+            .sheet(isPresented: $showingReview) {
+                ReviewCleanupView(
+                    viewModel: viewModel,
+                    selection: selection,
+                    isPresented: $showingReview
+                )
             }
         }
     }
