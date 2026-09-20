@@ -3,8 +3,8 @@ import SwiftUI
 struct BentoCategoryCard: View {
     let category: CleanupCategory
     let items: [ScanResultItem]
-    let totalEligibleOverall: Int64
-    let onExplore: () -> Void
+    @ObservedObject var selection: CleanupSelectionViewModel
+    var onFilterSelected: (() -> Void)? = nil
     
     private var eligibleItems: [ScanResultItem] {
         items.filter { $0.isEligibleForCleanup }
@@ -18,6 +18,11 @@ struct BentoCategoryCard: View {
         }
     }
     
+    private var isCategorySelected: Bool {
+        guard !eligibleItems.isEmpty else { return false }
+        return selection.isAllSelected(in: eligibleItems)
+    }
+    
     private var iconName: String {
         switch category {
         case .appLeftovers: return "trash.circle.fill"
@@ -27,122 +32,148 @@ struct BentoCategoryCard: View {
         }
     }
     
-    private var accentColor: Color {
+    private var titleText: String {
         switch category {
-        case .appLeftovers: return .orange
-        case .caches: return .blue
-        case .developerData: return .purple
-        case .largeFiles: return .green
+        case .appLeftovers: return "Sisa Aplikasi"
+        case .caches: return "Cache Sistem"
+        case .developerData: return "Data Pengembang"
+        case .largeFiles: return "Berkas & Arsip Besar"
         }
     }
     
     private var subtitleText: String {
         switch category {
-        case .appLeftovers: return "Uninstalled app leftovers"
-        case .caches: return "Regenerable app caches"
-        case .developerData: return "Build & package caches"
-        case .largeFiles: return "Large files & archives"
+        case .appLeftovers: return "Bundle data dari app terhapus"
+        case .caches: return "Log usang, preview, & WebKit"
+        case .developerData: return "Xcode, DerivedData, node_modules"
+        case .largeFiles: return "DMG lama, ZIP instalasi >500 MB"
         }
     }
     
-    // Relative proportion (0.0 to 1.0)
-    private var relativeShare: Double {
-        guard totalEligibleOverall > 0, displayBytes > 0 else { return 0.05 }
-        return min(1.0, max(0.08, Double(displayBytes) / Double(totalEligibleOverall)))
+    private var statusBadgeText: String {
+        switch category {
+        case .appLeftovers: return "Siap"
+        case .caches: return "Siap"
+        case .developerData: return "Periksa"
+        case .largeFiles: return ">500 MB"
+        }
+    }
+    
+    private var countDetailText: String {
+        switch category {
+        case .appLeftovers:
+            return "\(items.count) item terdeteksi"
+        case .caches:
+            return "Aman dibersihkan"
+        case .developerData:
+            return "Rebuildable artifacts"
+        case .largeFiles:
+            return "\(items.count) arsip ditemukan"
+        }
     }
     
     var body: some View {
-        Button(action: onExplore) {
-            VStack(alignment: .leading, spacing: 10) {
-                // Top Header: Icon, Category Name & Arrow
-                HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 14) {
+            // MARK: - Top: Icon & Checkbox
+            HStack(alignment: .center) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.mcSurfaceHigh)
+                        .frame(width: 40, height: 40)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
+                        )
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 20))
+                        .foregroundColor(isCategorySelected ? Color.mcCyan : Color.mcOutline)
+                }
+                
+                Spacer()
+                
+                // Direct Category Checkbox
+                Button(action: {
+                    selection.toggleSelectAll(in: eligibleItems)
+                }) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(accentColor.opacity(0.15))
-                            .frame(width: 34, height: 34)
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(isCategorySelected ? Color.mcCyan : Color.mcSurfaceHigh)
+                            .frame(width: 18, height: 18)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 5)
+                                    .stroke(isCategorySelected ? Color.mcCyan : Color.mcOutlineVariant, lineWidth: 1.2)
+                            )
                         
-                        Image(systemName: iconName)
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(accentColor)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(category.rawValue)
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.primary)
-                            .lineLimit(1)
-                        
-                        Text(subtitleText)
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "arrow.up.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(accentColor.opacity(0.8))
-                }
-                
-                Spacer(minLength: 4)
-                
-                // Bottom Readout: Size & Items Count
-                HStack(alignment: .bottom) {
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(ByteFormatter.string(from: displayBytes))
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundColor(displayBytes > 0 ? .primary : .secondary)
-                        
-                        Text(category == .largeFiles ? "\(items.count) files found" : "\(eligibleItems.count) eligible items")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    if displayBytes > 0 {
-                        Text("Inspect")
-                            .font(.system(size: 10, weight: .semibold))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 3)
-                            .background(accentColor.opacity(0.12))
-                            .foregroundColor(accentColor)
-                            .cornerRadius(4)
+                        if isCategorySelected {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(Color.mcSurfaceLowest)
+                        }
                     }
                 }
-                
-                // Visual Mini Capacity Bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color(NSColor.separatorColor).opacity(0.25))
-                            .frame(height: 4)
-                        
-                        Capsule()
-                            .fill(displayBytes > 0 ? accentColor : Color.clear)
-                            .frame(width: max(4, geo.size.width * CGFloat(relativeShare)), height: 4)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8), value: relativeShare)
-                    }
-                }
-                .frame(height: 4)
+                .buttonStyle(.plain)
+                .disabled(eligibleItems.isEmpty)
+                .help("Pilih atau batalkan semua item di \(titleText)")
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, minHeight: 110, alignment: .topLeading)
-            .background(Color(NSColor.controlBackgroundColor))
-            .overlay(
-                RoundedRectangle(cornerRadius: 10)
-                    .stroke(Color(NSColor.separatorColor).opacity(0.45), lineWidth: 1)
-            )
-            .cornerRadius(10)
+            
+            // MARK: - Title & Subtitle
+            VStack(alignment: .leading, spacing: 3) {
+                Text(titleText)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(Color.mcOnSurface)
+                    .lineLimit(1)
+                
+                Text(subtitleText)
+                    .font(.system(size: 12))
+                    .foregroundColor(Color.mcOnSurfaceVariant)
+                    .lineLimit(1)
+            }
+            
+            Divider()
+                .background(Color.mcOutlineVariant.opacity(0.2))
+            
+            // MARK: - Bottom Readout & Badge
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(ByteFormatter.string(from: displayBytes))
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(Color.mcOnSurface)
+                    
+                    Text(countDetailText)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color.mcOutline)
+                }
+                
+                Spacer()
+                
+                Text(statusBadgeText)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.mcSurfaceHighest)
+                    .foregroundColor(isCategorySelected ? Color.mcCyan : Color.mcOutline)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
+                    )
+                    .cornerRadius(12)
+            }
         }
-        .buttonStyle(.plain)
-        .interactiveCard(
-            scale: 1.018,
-            hoverBackground: accentColor.opacity(0.06),
-            hoverBorder: accentColor.opacity(0.4),
-            cornerRadius: 10,
-            pointer: true
+        .padding(16)
+        .background(Color.mcSurfaceContainer.opacity(isCategorySelected ? 0.9 : 0.65))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    isCategorySelected ? Color.mcCyan.opacity(0.4) : Color.mcOutlineVariant.opacity(0.25),
+                    lineWidth: isCategorySelected ? 1.5 : 1
+                )
         )
+        .cornerRadius(16)
+        .shadow(color: isCategorySelected ? Color.mcCyan.opacity(0.06) : Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onFilterSelected?()
+        }
     }
 }
