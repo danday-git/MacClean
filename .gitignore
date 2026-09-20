@@ -1,0 +1,27 @@
+# Xcode
+.DS_Store
+build/
+*.pbxproj
+*.xcworkspace
+xcuserdata/
+DerivedData/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+*.xcbkptlist
+
+# XcodeGen
+MacClean.xcodeproj/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Binaries
+MacCleanApp
+MacClean.app/
+MacClean.zip
