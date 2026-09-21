@@ -22,7 +22,7 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
 
 | Mode Gelap | Mode Terang |
 |------------|-------------|
-| ![Hasil Pindai Mode Gelap](docs/screenshots/Result-Dark.png) | ![Hasil Pindai Mode Terang](docs/screenshots/Result.png) |
+| ![Hasil Pindai Mode Gelap](docs/screenshots/Result-Dark.png) | ![Hasil Pindai Mode Terang](docs/screenshots/Result-Light.png) |
 
 ---
 

@@ -22,7 +22,7 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 
 | Dark Mode | Light Mode |
 |-----------|------------|
-| ![Dark Mode Scan Results](docs/screenshots/Result-Dark.png) | ![Light Mode Scan Results](docs/screenshots/Result.png) |
+| ![Dark Mode Scan Results](docs/screenshots/Result-Dark.png) | ![Light Mode Scan Results](docs/screenshots/Result-Light.png) |
 
 ---
 
