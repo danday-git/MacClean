@@ -254,8 +254,18 @@ struct DashboardView: View {
         let totalEligible = viewModel.totalPotentialReclaimable
         let hasScanned = viewModel.scanSummary != nil
         
+        let statusIcon: String = {
+            if viewModel.isScanning {
+                return "arrow.triangle.2.circlepath"
+            } else if hasScanned {
+                return "shield.fill"
+            } else {
+                return "magnifyingglass"
+            }
+        }()
+        
         return HStack(alignment: .center, spacing: 16) {
-            // Left: Shield/Sparkle Icon & Dynamic Status Description
+            // Left: Status Icon & Dynamic Status Description
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
@@ -265,7 +275,7 @@ struct DashboardView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color.mcOutlineVariant.opacity(0.3), lineWidth: 1)
                         )
-                    Image(systemName: hasScanned ? "shield.fill" : "sparkles")
+                    Image(systemName: statusIcon)
                         .font(.system(size: 18))
                         .foregroundColor(Color.mcCyan)
                 }
@@ -395,7 +405,7 @@ struct DashboardView: View {
                         showingDirectReview = true
                     }) {
                         HStack(spacing: 6) {
-                            Image(systemName: "hand.sparkles.fill")
+                            Image(systemName: "broom.fill")
                                 .font(.system(size: 13))
                             let cleanTitle = isID ? "Bersihkan Sekarang" : "Clean Now"
                             Text(selectedCount > 0 ? "\(cleanTitle) (\(ByteFormatter.string(from: selectedBytes)))" : cleanTitle)
