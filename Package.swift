@@ -2,26 +2,26 @@
 import PackageDescription
 
 let package = Package(
-    name: "MacClean",
+    name: "SweepMyMac",
     platforms: [
         .macOS(.v14)
     ],
     products: [
         .executable(
-            name: "MacClean",
-            targets: ["MacClean"]
+            name: "SweepMyMac",
+            targets: ["SweepMyMac"]
         ),
     ],
     targets: [
         .executableTarget(
-            name: "MacClean",
-            path: "MacClean",
+            name: "SweepMyMac",
+            path: "SweepMyMac",
             exclude: ["Resources"]
         ),
         .testTarget(
-            name: "MacCleanTests",
-            dependencies: ["MacClean"],
-            path: "MacCleanTests"
+            name: "SweepMyMacTests",
+            dependencies: ["SweepMyMac"],
+            path: "SweepMyMacTests"
         )
     ]
 )

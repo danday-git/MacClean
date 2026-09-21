@@ -2,16 +2,16 @@
 
 ## 1. Safety Principles & Guarantees
 
-> **Core Guarantee**: MacClean moves validated cleanup candidates to the macOS Trash. It does not permanently delete files, does not empty the Trash, and never executes destructive commands like `rm` or `rm -rf`.
+> **Core Guarantee**: SweepMyMac moves validated cleanup candidates to the macOS Trash. It does not permanently delete files, does not empty the Trash, and never executes destructive commands like `rm` or `rm -rf`.
 
 1. **Scan First, Confirm Before Action**:
    Every action requires explicit user initiation and confirmation. No file mutation occurs during scanning or review.
 2. **Fail Closed**:
-   If there is ambiguity, uncertainty, missing permissions, or an unexpected file type, MacClean rejects the item (`REJECT`). It never guesses.
+   If there is ambiguity, uncertainty, missing permissions, or an unexpected file type, SweepMyMac rejects the item (`REJECT`). It never guesses.
 3. **Defense in Depth**:
    Safety checks are not only performed during scan and review in `CleanupValidator`, but re-executed immediately before trashing inside `TrashManager` (TOCTOU protection).
 4. **No Elevated Privileges**:
-   MacClean never executes `sudo`, never calls `AuthorizationExecuteWithPrivileges`, and never invokes external shell commands (`/bin/sh`, `zsh`, `bash`). All filesystem operations use native macOS Foundation APIs.
+   SweepMyMac never executes `sudo`, never calls `AuthorizationExecuteWithPrivileges`, and never invokes external shell commands (`/bin/sh`, `zsh`, `bash`). All filesystem operations use native macOS Foundation APIs.
 
 ---
 
@@ -19,7 +19,7 @@
 
 - **Scope**: User home directory (`~`) only.
 - **Strict Containment**:
-  - Naive prefix matching is strictly forbidden. MacClean uses normalized path component matching (`ProtectedPaths.isContained`) to reject sibling directory attacks (e.g. `/Users/test2` mistakenly matching `/Users/test`).
+  - Naive prefix matching is strictly forbidden. SweepMyMac uses normalized path component matching (`ProtectedPaths.isContained`) to reject sibling directory attacks (e.g. `/Users/test2` mistakenly matching `/Users/test`).
   - The home directory itself (`~`) is protected and can never be selected or moved.
   - External volumes (`/Volumes`), root filesystem (`/`), and other users' home directories are strictly forbidden.
 
@@ -27,7 +27,7 @@
 
 ## 3. Protected Paths Matrix
 
-MacClean enforces protection at both system and user levels:
+SweepMyMac enforces protection at both system and user levels:
 
 ### System Protected Paths
 - `/System` and `/System/Applications`
@@ -74,7 +74,7 @@ Immediately before moving any item to the Trash:
    - No error dialog blocks the rest of the batch.
 4. If a file is locked or permission is denied:
    - It is caught gracefully by the native `FileManager.default.trashItem` handler and marked as `.failed`.
-   - MacClean does not prompt for `sudo`.
+   - SweepMyMac does not prompt for `sudo`.
 
 ---
 

@@ -11,6 +11,7 @@ DerivedData/
 *.xcbkptlist
 
 # XcodeGen
+SweepMyMac.xcodeproj/
 MacClean.xcodeproj/
 
 # Swift Package Manager
@@ -22,6 +23,9 @@ Pods/
 Podfile.lock
 
 # Binaries
+SweepMyMacApp
+SweepMyMac.app/
+SweepMyMac.zip
 MacCleanApp
 MacClean.app/
 MacClean.zip

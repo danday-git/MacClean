@@ -1,10 +1,10 @@
-# MacClean
+# SweepMyMac
 
 **English** | [Dokumentasi Bahasa Indonesia](README.md)
 
 **Storage Intelligence & Safe Cleanup Utility for macOS**
 
-MacClean is a lightweight, native macOS disk analysis and safe storage cleanup utility designed with the core principles of complete transparency, high performance, and absolute safety (*Trash-Only Architecture*).
+SweepMyMac is a lightweight, native macOS disk analysis and safe storage cleanup utility designed with the core principles of complete transparency, high performance, and absolute safety (*Trash-Only Architecture*).
 
 Built 100% using Swift and pure SwiftUI without external dependencies, without tracking (*zero telemetry*), and with an ultra-lightweight installation footprint (under 1 MB).
 
@@ -31,12 +31,12 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 Get started in 3 steps:
 
 **Step 1 — Download and open the app**
-Download `MacClean.zip` from the [Releases](https://github.com/danday-git/MacClean/releases) page, unzip it, and open `MacClean.app`.
+Download `SweepMyMac.zip` from the [Releases](https://github.com/danday-git/SweepMyMac/releases) page, unzip it, and open `SweepMyMac.app`.
 
 > If macOS shows an "unidentified developer" warning, right-click the app icon and choose **Open**.
 
 **Step 2 — Scan your storage**
-Click the **"Start Quick Scan"** button at the bottom of the app. MacClean will analyze your disk automatically (usually takes 10-30 seconds).
+Click the **"Start Quick Scan"** button at the bottom of the app. SweepMyMac will analyze your disk automatically (usually takes 10-30 seconds).
 
 **Step 3 — Review and clean**
 After the scan, check the items you want to remove and press **"Clean Now"**. You will see a full list of everything before anything is moved. Confirm once more in the dialog that appears.
@@ -46,7 +46,7 @@ After the scan, check the items you want to remove and press **"Clean Now"**. Yo
 ---
 
 ## Table of Contents
-1. [About MacClean](#about-macclean)
+1. [About SweepMyMac](#about-sweepmymac)
 2. [Absolute Safety Architecture](#absolute-safety-architecture)
 3. [User Authorization & Anti-Accidental Deletion Guarantees](#user-authorization--anti-accidental-deletion-guarantees)
 4. [Complete Interface & Feature Guide](#complete-interface--feature-guide)
@@ -63,11 +63,11 @@ After the scan, check the items you want to remove and press **"Clean Now"**. Yo
 
 ---
 
-## About MacClean
+## About SweepMyMac
 
 Many traditional Mac disk cleaners confuse users with opaque storage numbers, demand dangerous administrative (`root`/`sudo`) permissions, or permanently destroy files without any recovery option.
 
-MacClean answers two fundamental questions for every Mac owner:
+SweepMyMac answers two fundamental questions for every Mac owner:
 1. **"What is actually using my Mac's storage?"**
 2. **"What can safely be reclaimed right now without affecting macOS stability or losing my personal work files?"**
 
@@ -76,7 +76,7 @@ MacClean answers two fundamental questions for every Mac owner:
 ## Absolute Safety Architecture
 
 1. **Trash-Safe Only (100% Native macOS Trash)**:
-   MacClean never executes destructive deletion commands such as `rm -rf` or direct file unlinking (`unlink`). Every approved file is safely moved to the macOS Trash using Apple's official Foundation API: `FileManager.default.trashItem(at:resultingItemURL:)`. Users can inspect or restore any moved file at any time via macOS Finder.
+   SweepMyMac never executes destructive deletion commands such as `rm -rf` or direct file unlinking (`unlink`). Every approved file is safely moved to the macOS Trash using Apple's official Foundation API: `FileManager.default.trashItem(at:resultingItemURL:)`. Users can inspect or restore any moved file at any time via macOS Finder.
 2. **Double-Layer Validation (TOCTOU Defense)**:
    Candidate files undergo validation twice:
    - Initial check: During the scan and user inspection phase.
@@ -88,20 +88,20 @@ MacClean answers two fundamental questions for every Mac owner:
 
 ## User Authorization & Anti-Accidental Deletion Guarantees
 
-MacClean has been architected to make **unintended or silent file deletions structurally impossible**:
+SweepMyMac has been architected to make **unintended or silent file deletions structurally impossible**:
 
 - **Zero Automatic Deletion**: The application never runs background daemon watchers, cron schedules, or silent automated cleanup tasks. No file is ever modified or moved in the background.
 - **Triple-Gate User Confirmation**:
   1. **Gate 1 (Explicit Scan Initiation)**: Storage inspection only occurs when the user manually clicks **"Start Quick Scan"**.
   2. **Gate 2 (Granular Inspection & Review)**: After scanning, clicking **"Clean Now"** does not delete anything. It opens a dedicated review sheet displaying every selected file, exact paths, sizes, and explanations. Users can inspect or uncheck any item.
   3. **Gate 3 (Native Confirmation Modal Alert)**: Clicking the action button in the review sheet triggers a native macOS modal alert requiring explicit user confirmation before any file operation takes place.
-- **Fail-Closed Safety**: If file permissions are restricted or an item type is unrecognized, MacClean automatically skips the item without interrupting the rest of the application.
+- **Fail-Closed Safety**: If file permissions are restricted or an item type is unrecognized, SweepMyMac automatically skips the item without interrupting the rest of the application.
 
 ---
 
 ## Complete Interface & Feature Guide
 
-MacClean features a dense, responsive layout supporting both **Dark Obsidian Canvas** and **Studio Light Canvas** themes.
+SweepMyMac features a dense, responsive layout supporting both **Dark Obsidian Canvas** and **Studio Light Canvas** themes.
 
 ### 1. Top Navigation Header & Global Controls
 - **Drive Identity & APFS Tag**:
@@ -187,7 +187,7 @@ Pinned at the bottom of the screen to guide the cleanup lifecycle:
 Applies to all users:
 - **Operating System**: macOS 14.0 (Sonoma), macOS 15.0 (Sequoia), or later.
 - **Processor Architecture**: Universal Binary, natively supporting **Apple Silicon** (M1, M2, M3, M4) and **Intel 64-bit** Macs.
-- **System Privileges**: Standard macOS user account. MacClean **never** requires root or administrator privileges (`sudo`).
+- **System Privileges**: Standard macOS user account. SweepMyMac **never** requires root or administrator privileges (`sudo`).
 - **Free Disk Space**: At least 10 MB for the application bundle.
 
 ### 2. Prerequisites Matrix by Installation Method
@@ -203,11 +203,11 @@ Applies to all users:
 ### 3. macOS Privacy Settings (Optional / Recommended)
 - **Full Disk Access**:
   - macOS restricts third-party app access to specific user directories via TCC (*Transparency, Consent, and Control*).
-  - MacClean safely bypasses inaccessible directories without crashing or blocking execution.
+  - SweepMyMac safely bypasses inaccessible directories without crashing or blocking execution.
   - To enable complete storage telemetry across all system cache subfolders:
     1. Open **System Settings** on your Mac.
     2. Navigate to **Privacy & Security** > **Full Disk Access**.
-    3. Enable the toggle for **MacClean**.
+    3. Enable the toggle for **SweepMyMac**.
 
 ---
 
@@ -215,18 +215,18 @@ Applies to all users:
 
 ### Option 1: Pre-Built Application (General Users — No Xcode or Compilation Required)
 For users who want to use the application directly without installing developer tools:
-1. Download **`MacClean.zip`** from the [Releases](https://github.com/danday-git/MacClean/releases) page.
-2. Unzip the file to obtain **`MacClean.app`** (lightweight standalone bundle, under 1 MB).
-3. Drag `MacClean.app` into your `/Applications` folder.
+1. Download **`SweepMyMac.zip`** from the [Releases](https://github.com/danday-git/SweepMyMac/releases) page.
+2. Unzip the file to obtain **`SweepMyMac.app`** (lightweight standalone bundle, under 1 MB).
+3. Drag `SweepMyMac.app` into your `/Applications` folder.
 4. Launch the application normally.
 
 > [!NOTE]
-> Because this application uses an ad-hoc signature, if macOS Gatekeeper displays an unidentified developer prompt on the first launch, right-click `MacClean.app` and choose **Open**, or go to **System Settings > Privacy & Security** and click **Open Anyway**.
+> Because this application uses an ad-hoc signature, if macOS Gatekeeper displays an unidentified developer prompt on the first launch, right-click `SweepMyMac.app` and choose **Open**, or go to **System Settings > Privacy & Security** and click **Open Anyway**.
 
 ---
 
 ### Option 2: Using Terminal & Swift CLI (Only Command Line Tools ~500 MB, No Xcode IDE ~15 GB)
-If you do not have the heavy Xcode IDE installed, you can build and run MacClean using only **Apple Command Line Tools**:
+If you do not have the heavy Xcode IDE installed, you can build and run SweepMyMac using only **Apple Command Line Tools**:
 1. Install Command Line Tools if not already present:
    ```bash
    xcode-select --install
@@ -237,18 +237,18 @@ If you do not have the heavy Xcode IDE installed, you can build and run MacClean
    # or
    swift run
    ```
-3. To package a standalone optimized `MacClean.app` bundle and zip archive:
+3. To package a standalone optimized `SweepMyMac.app` bundle and zip archive:
    ```bash
    ./build_release.sh
    ```
-   This script builds with `-Osize` optimization, applies dead-code stripping, packages the `.app` bundle, signs it ad-hoc, and creates `MacClean.zip`.
+   This script builds with `-Osize` optimization, applies dead-code stripping, packages the `.app` bundle, signs it ad-hoc, and creates `SweepMyMac.zip`.
 
 ---
 
 ### Option 3: Using Xcode IDE (For Developers)
 If you have Xcode 15.0 or later installed:
-1. Open `MacClean.xcodeproj` in Xcode.
-2. Select the `MacClean` scheme targeting *My Mac*.
+1. Open `SweepMyMac.xcodeproj` in Xcode.
+2. Select the `SweepMyMac` scheme targeting *My Mac*.
 3. Press **Cmd + R** to build and run.
 4. To regenerate the project file from `project.yml`:
    ```bash
@@ -258,10 +258,10 @@ If you have Xcode 15.0 or later installed:
 #### Command-Line Build & Unit Testing
 ```bash
 # Build debug application
-xcodebuild -scheme MacClean -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
+xcodebuild -scheme SweepMyMac -destination 'platform=macOS' build CODE_SIGNING_ALLOWED=NO
 
 # Run entire automated test suite (73 tests)
-xcodebuild -scheme MacClean -destination 'platform=macOS' test CODE_SIGNING_ALLOWED=NO
+xcodebuild -scheme SweepMyMac -destination 'platform=macOS' test CODE_SIGNING_ALLOWED=NO
 ```
 
 ---
