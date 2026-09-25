@@ -26,40 +26,82 @@ Built 100% using Swift and pure SwiftUI without external dependencies, without t
 
 ---
 
-## Quick Start
+<a id="quick-access"></a>
+## ⚡ Quick Access for Beginners
 
-Get started in 3 steps:
+If you are new to SweepMyMac, getting started is straightforward and takes less than a minute. Choose the path that works best for you:
 
-**Step 1 — Download and open the app**
-Download `SweepMyMac.zip` from the [Releases](https://github.com/danday-git/SweepMyMac/releases) page, unzip it, and open `SweepMyMac.app`.
+---
 
-> If macOS shows an "unidentified developer" warning, right-click the app icon and choose **Open**.
+### 🟢 Path 1: General Users (Click & Run — Zero Terminal Required)
+*Ideal if you want a seamless native macOS graphical app without touching the command line.*
 
-**Step 2 — Scan your storage**
-Click the **"Start Quick Scan"** button at the bottom of the app. SweepMyMac will analyze your disk automatically (usually takes 10-30 seconds).
+1. **Download the App**:
+   - Download the pre-built [**SweepMyMac.zip**](https://github.com/danday-git/SweepMyMac/releases/latest) archive from the Releases page.
+   - Double-click the `.zip` file to extract it.
+2. **Open the App**:
+   - Double-click **`SweepMyMac.app`** (you can drag it into your `/Applications` folder).
+   - *(Tips: If macOS displays an "unidentified developer" warning on first launch, simply right-click `SweepMyMac.app` and choose **Open**, or go to **System Settings > Privacy & Security** and click **Open Anyway**).*
+3. **Scan & Clean**:
+   - Click the **"Start Quick Scan"** button at the bottom of the window.
+   - Wait a few moments for the scan to finish (typically 10–30 seconds).
+   - SweepMyMac automatically pre-selects safe caches and app leftovers.
+   - Click **"Clean Now"** ➔ Review the item list ➔ Click **Confirm**.
+   - ✨ **Done!** Your Mac storage space is reclaimed cleanly.
 
-**Step 3 — Review and clean**
-After the scan, check the items you want to remove and press **"Clean Now"**. You will see a full list of everything before anything is moved. Confirm once more in the dialog that appears.
+> [!TIP]
+> **100% Safe for Beginners:** SweepMyMac uses a *Trash-Only Architecture*. Cleaned files are **only moved to the macOS Trash**, never permanently deleted. If you ever change your mind or moved something accidentally, you can restore it (*Put Back*) at any time via Finder.
 
-> All files are only moved to the **macOS Trash** — nothing is permanently deleted. You can restore any file at any time from Finder.
+---
+
+### 💻 Path 2: Terminal & Developers (Single-Command Execution)
+*Ideal if you already work in Terminal or prefer running from source.*
+
+- **If you already cloned or downloaded this repository**:
+  ```bash
+  ./run.sh
+  ```
+  *(This script automatically compiles and opens the SweepMyMac app window)*.
+
+- **If starting fresh from Terminal (One-Liner)**:
+  ```bash
+  git clone https://github.com/danday-git/SweepMyMac.git && cd SweepMyMac && ./run.sh
+  ```
+
+- **If you want to package a standalone `SweepMyMac.app` & `.zip` bundle**:
+  ```bash
+  ./build_release.sh
+  ```
+
+---
+
+### 🧭 Quick Guide: Choose What Fits Your Workflow
+
+| Your Need | Recommended Option | Quick Steps |
+| :--- | :--- | :--- |
+| **Just want to clean my Mac (Non-Technical)** | 🟢 **Path 1 (Pre-built App)** | [Download SweepMyMac.zip](https://github.com/danday-git/SweepMyMac/releases/latest) ➔ Open `.app` ➔ Click *Start Quick Scan* |
+| **Run via Terminal** | 💻 **Path 2 (CLI Script)** | Run `./run.sh` in Terminal |
+| **Package a standalone `.app` bundle** | 🛠️ **Release Script** | Run `./build_release.sh` |
+| **Inspect / edit source code** | 🧑‍💻 **Xcode Project** | Open `SweepMyMac.xcodeproj` ➔ Press `Cmd + R` |
 
 ---
 
 ## Table of Contents
-1. [About SweepMyMac](#about-sweepmymac)
-2. [Absolute Safety Architecture](#absolute-safety-architecture)
-3. [User Authorization & Anti-Accidental Deletion Guarantees](#user-authorization--anti-accidental-deletion-guarantees)
-4. [Complete Interface & Feature Guide](#complete-interface--feature-guide)
+1. [Quick Access for Beginners](#quick-access)
+2. [About SweepMyMac](#about-sweepmymac)
+3. [Absolute Safety Architecture](#absolute-safety-architecture)
+4. [User Authorization & Anti-Accidental Deletion Guarantees](#user-authorization--anti-accidental-deletion-guarantees)
+5. [Complete Interface & Feature Guide](#complete-interface--feature-guide)
    - [Top Navigation Header & Global Controls](#1-top-navigation-header--global-controls)
    - [Hero Storage Visualizer](#2-hero-storage-visualizer)
    - [4 Bento Category Cards](#3-4-bento-category-cards)
    - [File Inspection & Detail Table](#4-file-inspection--detail-table)
    - [Unified Floating Action Dock](#5-unified-floating-action-dock)
    - [Explanation Sheet & Review Confirmation](#6-explanation-sheet--review-confirmation)
-5. [Detected File Categories](#detected-file-categories)
-6. [System Requirements & Prerequisites](#system-requirements--prerequisites)
-7. [Installation & Execution Guide (With / Without Xcode)](#installation--execution-guide-with--without-xcode)
-8. [License](#license)
+6. [Detected File Categories](#detected-file-categories)
+7. [System Requirements & Prerequisites](#system-requirements--prerequisites)
+8. [Installation & Execution Guide (With / Without Xcode)](#installation--execution-guide-with--without-xcode)
+9. [License](#license)
 
 ---
 

@@ -26,40 +26,82 @@ Aplikasi ini dibangun 100% menggunakan Swift dan SwiftUI murni tanpa dependensi 
 
 ---
 
-## Cara Cepat Mulai (Quick Start)
+<a id="quick-access"></a>
+## ⚡ Akses Cepat untuk Pemula (Quick Access)
 
-Cukup 3 langkah untuk membersihkan penyimpanan Mac Anda:
+Jika Anda baru pertama kali menggunakan SweepMyMac, Anda bisa langsung menggunakannya dalam hitungan detik. Pilih metode yang paling mudah bagi Anda:
 
-**Langkah 1 — Unduh dan buka aplikasi**
-Unduh `SweepMyMac.zip` dari halaman [Releases](https://github.com/danday-git/SweepMyMac/releases), ekstrak, lalu buka `SweepMyMac.app`.
+---
 
-> Jika muncul peringatan "developer tidak dikenal", klik kanan icon aplikasi lalu pilih **Open**.
+### 🟢 Jalur 1: Pengguna Biasa (Tinggal Klik — Tanpa Terminal & Tanpa Coding)
+*Cocok bagi Anda yang ingin langsung membersihkan Mac dengan antarmuka grafis yang ramah.*
 
-**Langkah 2 — Pindai penyimpanan**
-Tekan tombol **"Mulai Pindai Cepat"** di bagian bawah aplikasi. SweepMyMac akan menganalisis disk Anda secara otomatis (biasanya selesai dalam 10-30 detik).
+1. **Unduh Aplikasi**:
+   - Unduh file zip siap pakai [**SweepMyMac.zip**](https://github.com/danday-git/SweepMyMac/releases/latest) dari halaman Rilis.
+   - Klik ganda (double-click) file `.zip` tersebut untuk mengekstraknya.
+2. **Buka Aplikasi**:
+   - Buka **`SweepMyMac.app`** (bisa dipindahkan ke folder `/Applications`).
+   - *(Tips: Jika muncul peringatan keamanan macOS karena aplikasi belum diverifikasi Apple, cukup klik kanan icon `SweepMyMac.app` lalu pilih **Open**, atau buka **System Settings > Privacy & Security** dan klik **Open Anyway**).*
+3. **Pindai & Bersihkan**:
+   - Klik tombol **"Mulai Pindai Cepat"** di bagian bawah jendela aplikasi.
+   - Tunggu proses pemindaian berjalan (biasanya selesai dalam 10–30 detik).
+   - SweepMyMac akan otomatis menandai berkas cache dan sisa aplikasi yang aman dibersihkan.
+   - Klik tombol **"Bersihkan Sekarang"** ➔ Tinjau daftarnya ➔ Klik **Konfirmasi**.
+   - ✨ **Selesai!** Ruang penyimpanan Mac Anda kembali lega dan bersih.
 
-**Langkah 3 — Tinjau dan bersihkan**
-Setelah pindai selesai, centang item yang ingin dibersihkan lalu tekan **"Bersihkan Sekarang"**. Anda akan melihat daftar lengkap sebelum ada yang dipindahkan. Konfirmasi sekali lagi pada dialog yang muncul.
+> [!TIP]
+> **Jaminan 100% Aman untuk Pemula:** SweepMyMac menggunakan *Trash-Only Architecture*. Semua berkas yang dibersihkan **hanya dipindahkan ke Tong Sampah (macOS Trash)**, bukan dihapus permanen. Jika Anda berubah pikiran atau tidak sengaja memindahkan berkas, Anda bisa memulihkannya (*Put Back*) kapan saja melalui Finder.
 
-> Semua file hanya dipindahkan ke **Tong Sampah macOS** — tidak ada yang dihapus permanen. Anda bisa memulihkannya kapan saja lewat Finder.
+---
+
+### 💻 Jalur 2: Pengguna Terminal & Developer (Cukup 1 Baris Perintah)
+*Cocok bagi Anda yang terbiasa menggunakan Terminal.*
+
+- **Jika sudah mengunduh / mengklon repositori ini**:
+  ```bash
+  ./run.sh
+  ```
+  *(Skrip otomatis mengompilasi dan membuka jendela aplikasi SweepMyMac)*.
+
+- **Jika ingin langsung pasang dan jalankan dari nol (One-Liner)**:
+  ```bash
+  git clone https://github.com/danday-git/SweepMyMac.git && cd SweepMyMac && ./run.sh
+  ```
+
+- **Jika ingin membuat file paket `SweepMyMac.app` & `.zip` sendiri**:
+  ```bash
+  ./build_release.sh
+  ```
+
+---
+
+### 🧭 Panduan Cepat: Pilih Cara yang Sesuai Kebutuhan Anda
+
+| Kebutuhan Anda | Jalur Rekomendasi | Langkah Singkat |
+| :--- | :--- | :--- |
+| **Hanya ingin bersihkan Mac (Non-Teknis)** | 🟢 **Jalur 1 (Aplikasi Siap Pakai)** | [Unduh SweepMyMac.zip](https://github.com/danday-git/SweepMyMac/releases/latest) ➔ Buka `.app` ➔ Klik *Mulai Pindai Cepat* |
+| **Ingin jalankan via Terminal** | 💻 **Jalur 2 (Script CLI)** | Jalankan `./run.sh` di Terminal |
+| **Ingin buat bundle `.app` sendiri** | 🛠️ **Release Script** | Jalankan `./build_release.sh` |
+| **Ingin lihat / kembangkan kode sumber** | 🧑‍💻 **Xcode Project** | Buka `SweepMyMac.xcodeproj` ➔ Tekan `Cmd + R` |
 
 ---
 
 ## Daftar Isi
-1. [Tentang SweepMyMac](#tentang-sweepmymac)
-2. [Prinsip Keamanan Mutlak](#prinsip-keamanan-mutlak)
-3. [Jaminan Anti-Penghapusan Otomatis / Tanpa Izin](#jaminan-anti-penghapusan-otomatis--tanpa-izin)
-4. [Panduan Lengkap Informasi Antarmuka](#panduan-lengkap-informasi-antarmuka)
+1. [Akses Cepat untuk Pemula (Quick Access)](#quick-access)
+2. [Tentang SweepMyMac](#tentang-sweepmymac)
+3. [Prinsip Keamanan Mutlak](#prinsip-keamanan-mutlak)
+4. [Jaminan Anti-Penghapusan Otomatis / Tanpa Izin](#jaminan-anti-penghapusan-otomatis--tanpa-izin)
+5. [Panduan Lengkap Informasi Antarmuka](#panduan-lengkap-informasi-antarmuka)
    - [Header Navigasi & Kontrol Global](#1-header-navigasi--kontrol-global)
    - [Hero Storage Visualizer](#2-hero-storage-visualizer)
    - [4 Kartu Kategori Bento](#3-4-kartu-kategori-bento)
    - [Tabel Detail Inspeksi Berkas](#4-tabel-detail-inspeksi-berkas)
    - [Floating Action Dock Terpadu](#5-floating-action-dock-terpadu)
    - [Lembar Penjelasan & Konfirmasi Pembersihan](#6-lembar-penjelasan--konfirmasi-pembersihan)
-5. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
-6. [Persyaratan Sistem & Prasyarat (Prerequisites)](#persyaratan-sistem--prasyarat-prerequisites)
-7. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
-8. [Lisensi](#lisensi)
+6. [Kategori Berkas yang Dideteksi](#kategori-berkas-yang-dideteksi)
+7. [Persyaratan Sistem & Prasyarat (Prerequisites)](#persyaratan-sistem--prasyarat-prerequisites)
+8. [Cara Instalasi & Menjalankan Aplikasi (Dengan / Tanpa Xcode)](#cara-instalasi--menjalankan-aplikasi-dengan--tanpa-xcode)
+9. [Lisensi](#lisensi)
 
 ---
 
